@@ -1,3 +1,10 @@
+# Input data
+data/
+input_data/
+
+# Ignore notebooks for now; revert this later
+notebooks/
+
 # History files
 .Rhistory
 .Rapp.history
