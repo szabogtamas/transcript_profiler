@@ -28,6 +28,7 @@ RUN install2.r --error \
 RUN R -e "BiocManager::install('ggbio')"
 RUN R -e "BiocManager::install('wiggleplotr')"
 RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
+RUN R -e "BiocManager::install('ensembldb')"
 
 RUN chmod a+rwx -R /home/rstudio
 
