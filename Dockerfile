@@ -25,6 +25,10 @@ RUN install2.r --error \
     openxlsx \
     readxl
 
+RUN R -e "BiocManager::install('ggbio')"
+RUN R -e "BiocManager::install('wiggleplotr')"
+RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
+
 RUN chmod a+rwx -R /home/rstudio
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
