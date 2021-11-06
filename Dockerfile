@@ -9,6 +9,8 @@ RUN sudo apt-get update -y && \
     sudo apt-get install -y liblzma-dev && \
     sudo apt-get install -y gsl-bin
 
+RUN sudo apt-get install -y libgsl-dev
+
 RUN pip3 install numpy && \
     pip3 install pandas && \
     pip3 install matplotlib && \
