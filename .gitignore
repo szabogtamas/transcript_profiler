@@ -2,6 +2,9 @@
 data/
 input_data/
 
+# Third party licenced software (CBS)
+third_party/
+
 # History files
 .Rhistory
 .Rapp.history
