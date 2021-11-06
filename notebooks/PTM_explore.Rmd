@@ -1,0 +1,17 @@
+---
+title: "Post-translational modifications"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float:
+      toc_collapsed: true
+---
+
+## Setup
+
+```{r message = FALSE, warning = FALSE}
+# Import tools to be used
+
+library(dplyr)
+```
