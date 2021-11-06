@@ -6,7 +6,8 @@ RUN sudo apt-get update -y && \
     sudo apt-get install -y libcairo2-dev && \
     sudo apt-get install -y libxml2-dev && \
     sudo apt-get install -y libbz2-dev && \
-    sudo apt-get install -y liblzma-dev
+    sudo apt-get install -y liblzma-dev && \
+    sudo apt-get install -y gsl-bin
 
 RUN pip3 install numpy && \
     pip3 install pandas && \
@@ -32,7 +33,6 @@ RUN R -e "BiocManager::install('ggbio')"
 RUN R -e "BiocManager::install('wiggleplotr')"
 RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
 RUN R -e "BiocManager::install('ensembldb')"
-RUN R -e "BiocManager::install('DirichletMultinomial')"
 RUN R -e "BiocManager::install('TFBSTools')"
 
 RUN chmod a+rwx -R /home/rstudio
