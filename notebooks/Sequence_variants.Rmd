@@ -78,7 +78,7 @@ plotTracks(list(itrack, grtrack))
 
 ```{r}
 protein_seqs <- proteins(
-  edb, filter = GeneNameFilter(params$gene_symbol), return.type = "AAStringSet"
+  hsdb, filter = GeneNameFilter(params$gene_symbol), return.type = "AAStringSet"
 )
 
 protein_seqs
