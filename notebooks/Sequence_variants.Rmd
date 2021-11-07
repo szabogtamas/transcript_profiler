@@ -10,6 +10,7 @@ params:
   gene_id: "ENSG00000141510"
   report_title: "Transciprts of `r params$gene_id`"
   report_author: "Tamas Szabo"
+  report_time: !r format(Sys.Date(), format="%d/%m/%Y")
 ---
 
 ## Setup
