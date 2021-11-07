@@ -1,0 +1,21 @@
+---
+title: "`r params$report_title`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+    code_folding: hide
+params:
+  gene_id: "ENSG00000141510"
+  report_title: "Transciprts of `r params$gene_id`"
+  report_author: "Tamas Szabo"
+---
+
+## Setup
+
+```{r message = FALSE, warning = FALSE}
+# Import tools to be used
+
+library(dplyr)
+```
