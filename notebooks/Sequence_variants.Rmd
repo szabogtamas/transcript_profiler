@@ -7,8 +7,8 @@ output:
     theme: united
     code_folding: hide
 params:
-  gene_id: "ENSG00000141510"
-  report_title: "Transciprts of `r params$gene_id`"
+  gene_symbol: "TP53"
+  report_title: "Transciprts of `r params$gene_symbol`"
   report_author: "Tamas Szabo"
   report_time: !r format(Sys.Date(), format="%d/%m/%Y")
   report_folder: "../reports"
@@ -26,6 +26,7 @@ library(ggbio)
 library(DT)
 library(ensembldb)
 library(EnsDb.Hsapiens.v86)
+library(EnsDb.Mmusculus.v79)
 
 select <- dplyr::select
 filter <- dplyr::filter
@@ -33,8 +34,10 @@ filter <- dplyr::filter
 edb <- EnsDb.Hsapiens.v86
 ```
 
+## Human transcripts
+
 ```{r}
-Tx <- transcripts(edb, filter = GeneIdFilter(params$gene_id))
+Tx <- transcripts(edb, filter = GeneNameFilter(params$gene_symbol))
 tx_df <- as.data.frame(Tx)
 
 datatable(tx_df)
