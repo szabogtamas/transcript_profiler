@@ -43,6 +43,7 @@ RUN R -e "BiocManager::install('BSgenome.Dmelanogaster.UCSC.dm6')"
 RUN R -e "BiocManager::install('BSgenome.Drerio.UCSC.danRer10')"
 RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
+RUN R -e "BiocManager::install('Gviz')"
 
 RUN install2.r --error \
     --deps TRUE \
