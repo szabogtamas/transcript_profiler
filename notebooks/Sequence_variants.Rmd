@@ -20,4 +20,23 @@ params:
 # Import tools to be used
 
 library(dplyr)
+library(Gviz)
+library(GenomicRanges)
+library(ggbio)
+library(DT)
+library(ensembldb)
+library(EnsDb.Hsapiens.v86)
+
+select <- dplyr::select
+filter <- dplyr::filter
+
+edb <- EnsDb.Hsapiens.v86
 ```
+
+```{r}
+Tx <- transcripts(edb, filter = GeneIdFilter(params$gene_id))
+tx_df <- as.data.frame(Tx)
+
+datatable(tx_df)
+```
+
