@@ -20,13 +20,14 @@ params:
 # Import tools to be used
 
 library(dplyr)
-library(Gviz)
-library(GenomicRanges)
-library(ggbio)
-library(DT)
-library(ensembldb)
 library(EnsDb.Hsapiens.v86)
 library(EnsDb.Mmusculus.v79)
+library(ensembldb)
+library(homologene)
+library(GenomicRanges)
+library(Gviz)
+library(ggbio)
+library(DT)
 
 select <- dplyr::select
 filter <- dplyr::filter
@@ -52,6 +53,10 @@ datatable(tx_df)
 ### Transcript annotations for gene
 
 ```{r}
+mouse_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 10090)
+Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
+txm_df <- as.data.frame(Tx_m)
 
+datatable(txm_df)
 ```
 

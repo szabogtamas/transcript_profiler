@@ -38,6 +38,10 @@ RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
 RUN R -e "BiocManager::install('EnsDb.Mmusculus.v79')"
 
+RUN install2.r --error \
+    --deps TRUE \
+    homologene
+
 RUN chmod a+rwx -R /home/rstudio
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
