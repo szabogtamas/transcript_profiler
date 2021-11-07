@@ -63,6 +63,15 @@ gene_models <- exonsBy(
 autoplot(gene_models[[1]], aes(type = model))
 ```
 
+```{r}
+gen<-genome(Tx)
+chr <- as.character(unique(seqnames(Tx)))
+
+itrack <- IdeogramTrack(genome = gen, chromosome = chr)
+grtrack <- GeneRegionTrack(gene_models, genome = gen, chromosome = chr, name = "Gene Model")
+plotTracks(list(itrack, grtrack))
+```
+
 
 ## Mouse transcripts
 
