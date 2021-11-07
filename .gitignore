@@ -2,6 +2,11 @@
 data/
 input_data/
 
+# Actual outputs
+reports/
+figures/
+tables/
+
 # Third party licenced software (CBS)
 third_party/
 
