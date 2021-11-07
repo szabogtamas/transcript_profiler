@@ -41,7 +41,10 @@ mmdb <- EnsDb.Mmusculus.v79
 ### Transcript annotations for gene
 
 ```{r}
-Tx <- transcripts(hsdb, filter = GeneNameFilter(params$gene_symbol))
+Tx <- transcripts(
+  hsdb, filter = GeneNameFilter(params$gene_symbol),
+  columns = c("tx_biotype", "gene_name")#, "protein_id", "uniprot_id")
+)
 Tx <- Tx[Tx$tx_biotype != "LRG_gene"]
 tx_df <- as.data.frame(Tx)
 
@@ -70,6 +73,15 @@ chr <- as.character(unique(seqnames(Tx)))
 itrack <- IdeogramTrack(genome = gen, chromosome = chr)
 grtrack <- GeneRegionTrack(gene_models, genome = gen, chromosome = chr, name = "Gene Model")
 plotTracks(list(itrack, grtrack))
+```
+### Protein sequences
+
+```{r}
+protein_seqs <- proteins(
+  edb, filter = GeneNameFilter(params$gene_symbol), return.type = "AAStringSet"
+)
+
+protein_seqs
 ```
 
 
