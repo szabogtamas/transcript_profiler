@@ -29,7 +29,8 @@ RUN install2.r --error \
     ggridges \
     plotly \
     openxlsx \
-    readxl
+    readxl \
+    homologene
 
 RUN R -e "BiocManager::install('ggbio')"
 RUN R -e "BiocManager::install('wiggleplotr')"
@@ -43,11 +44,8 @@ RUN R -e "BiocManager::install('BSgenome.Dmelanogaster.UCSC.dm6')"
 RUN R -e "BiocManager::install('BSgenome.Drerio.UCSC.danRer10')"
 RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
-RUN R -e "BiocManager::install('Gviz')"
-
-RUN install2.r --error \
-    --deps TRUE \
-    homologene
+#RUN R -e "BiocManager::install('Gviz')"
+RUN R -e "remotes::install_github('ivanek/Gviz')"
 
 RUN chmod a+rwx -R /home/rstudio
 
