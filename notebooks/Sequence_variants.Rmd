@@ -42,9 +42,25 @@ mmdb <- EnsDb.Mmusculus.v79
 
 ```{r}
 Tx <- transcripts(hsdb, filter = GeneNameFilter(params$gene_symbol))
+Tx <- Tx[Tx$tx_biotype != "LRG_gene"]
 tx_df <- as.data.frame(Tx)
 
 datatable(tx_df)
+```
+
+```{r}
+autoplot(Tx)
+```
+
+```{r}
+gene_models <- exonsBy(
+  hsdb, by = "gene",
+  filter = AnnotationFilterList(
+    GeneNameFilter(params$gene_symbol),
+    GeneIdFilter("ENS", "startsWith")
+  )
+)
+autoplot(gene_models[[1]], aes(type = model))
 ```
 
 
