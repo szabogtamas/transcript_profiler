@@ -31,15 +31,27 @@ library(EnsDb.Mmusculus.v79)
 select <- dplyr::select
 filter <- dplyr::filter
 
-edb <- EnsDb.Hsapiens.v86
+hsdb <- EnsDb.Hsapiens.v86
+mmdb <- EnsDb.Mmusculus.v79
 ```
 
 ## Human transcripts
 
+### Transcript annotations for gene
+
 ```{r}
-Tx <- transcripts(edb, filter = GeneNameFilter(params$gene_symbol))
+Tx <- transcripts(hsdb, filter = GeneNameFilter(params$gene_symbol))
 tx_df <- as.data.frame(Tx)
 
 datatable(tx_df)
+```
+
+
+## Mouse transcripts
+
+### Transcript annotations for gene
+
+```{r}
+
 ```
 
