@@ -25,6 +25,7 @@ library(EnsDb.Mmusculus.v79)
 library(ensembldb)
 library(homologene)
 library(GenomicRanges)
+library(GenomicFeatures)
 library(Gviz)
 library(ggbio)
 library(DT)
@@ -76,7 +77,7 @@ plotTracks(list(itrack, grtrack))
 ```
 
 ```{r}
-gr <- getGeneRegionTrackForGviz(edb, chromosome = chr, start = 7661779, end = 7675779)
+gr <- getGeneRegionTrackForGviz(hsdb, chromosome = chr, start = 7661779, end = 7675779)
 gat <- GenomeAxisTrack()
 
 options(ucscChromosomeNames = FALSE)
@@ -84,6 +85,14 @@ options(ucscChromosomeNames = FALSE)
 plotTracks(list(gat, GeneRegionTrack(gr)))
 ```
 
+### Nucleotide sequences
+
+```{r}
+dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
+yTxSeqs <- extractTranscriptSeqs(dna, gene_models)
+
+yTxSeqs
+```
 
 ### Protein sequences
 
@@ -106,5 +115,13 @@ Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
 txm_df <- as.data.frame(Tx_m)
 
 datatable(txm_df)
+```
+
+### Zebrafish
+
+```{r}
+bsg <- BSgenome.Drerio.UCSC.danRer10
+
+extractTranscriptSeqs(bsg, gene_models)
 ```
 
