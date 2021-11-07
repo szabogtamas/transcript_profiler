@@ -34,9 +34,15 @@ RUN install2.r --error \
 RUN R -e "BiocManager::install('ggbio')"
 RUN R -e "BiocManager::install('wiggleplotr')"
 RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
+RUN R -e "BiocManager::install('EnsDb.Mmusculus.v79')"
+RUN R -e "BiocManager::install('TxDb.Dmelanogaster.UCSC.dm6.ensGene')"
+RUN R -e "BiocManager::install('TxDb.Drerio.UCSC.danRer11.refGene')"
+RUN R -e "BiocManager::install('BSgenome.Hsapiens.UCSC.hg19')"
+RUN R -e "BiocManager::install('BSgenome.Mmusculus.UCSC.mm10')"
+RUN R -e "BiocManager::install('BSgenome.Dmelanogaster.UCSC.dm6')"
+RUN R -e "BiocManager::install('BSgenome.Drerio.UCSC.danRer10')"
 RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
-RUN R -e "BiocManager::install('EnsDb.Mmusculus.v79')"
 
 RUN install2.r --error \
     --deps TRUE \
