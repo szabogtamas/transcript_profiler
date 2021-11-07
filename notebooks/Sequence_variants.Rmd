@@ -74,6 +74,17 @@ itrack <- IdeogramTrack(genome = gen, chromosome = chr)
 grtrack <- GeneRegionTrack(gene_models, genome = gen, chromosome = chr, name = "Gene Model")
 plotTracks(list(itrack, grtrack))
 ```
+
+```{r}
+gr <- getGeneRegionTrackForGviz(edb, chromosome = chr, start = 7661779, end = 7675779)
+gat <- GenomeAxisTrack()
+
+options(ucscChromosomeNames = FALSE)
+
+plotTracks(list(gat, GeneRegionTrack(gr)))
+```
+
+
 ### Protein sequences
 
 ```{r}
