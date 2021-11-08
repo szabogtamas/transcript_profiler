@@ -53,9 +53,9 @@ RUN sudo apt-get update -y && \
 ADD ./third_party /usr/local/lib/third_party
 RUN mkdir -p /usr/cbs/packages && \
   tar -xvzf /usr/local/lib/third_party/netNglyc-1.0d.Linux.tar.gz -C /usr/cbs/packages && \
-  sed -i 's#/usr/cbs/packages/netNglyc/1.0/netNglyc-1.0#/usr/cbs/packages/netNglyc-1.0#g' /usr/cbs/packages/netNglyc-1.0/netNglyc-1.0 && \
+  sed -i 's#/usr/cbs/packages/netNglyc/1.0/netNglyc-1.0#/usr/cbs/packages/netNglyc-1.0#g' /usr/cbs/packages/netNglyc-1.0/netNglyc && \
   tar -xvzf /usr/local/lib/third_party/netOglyc-3.1e.Linux.tar.gz -C /usr/cbs/packages && \
-  sed -i 's#/usr/cbs/packages/netOglyc/3.1/netOglyc-3.1d#/usr/cbs/packages/netOglyc-3.1#g' /usr/cbs/packages/netOglyc-3.1/netOglyc-3.1 && \
+  sed -i 's#/usr/cbs/packages/netOglyc/3.1/netOglyc-3.1d#/usr/cbs/packages/netOglyc-3.1#g' /usr/cbs/packages/netOglyc-3.1/netOglyc && \
   tar -xvzf /usr/local/lib/third_party/netphos-3.1.Linux.tar.Z -C /usr/cbs/packages && \
   sed -i 's#/usr/cbs/bio/src/ape-1.0#/usr/cbs/packages/ape-1.0#g' /usr/cbs/packages/ape-1.0/ape && \
   sudo chmod -R 777 /usr/cbs/packages/
