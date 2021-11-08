@@ -68,16 +68,19 @@ autoplot(gene_models[[1]], aes(type = model))
 ```
 
 ```{r}
-gen<-genome(Tx)
+gen <- genome(Tx)
 chr <- as.character(unique(seqnames(Tx)))
+region_start = min(tx_df$start)
+region_end = max(tx_df$end)
 
-itrack <- IdeogramTrack(genome = gen, chromosome = chr)
-grtrack <- GeneRegionTrack(gene_models, genome = gen, chromosome = chr, name = "Gene Model")
-plotTracks(list(itrack, grtrack))
+gene_models[[1]]$tracknames <- paste0("chr", chr)
+itrack <- IdeogramTrack(genome = "hg38", chromosome = paste0("chr", chr))
+grtrack <- GeneRegionTrack(gene_models, genome = "hg38", chromosome = paste0("chr", chr), name = "Gene Model")
+plotTracks(list(itrack, grtrack), from=region_start, to=region_end)
 ```
 
 ```{r}
-gr <- getGeneRegionTrackForGviz(hsdb, chromosome = chr, start = 7661779, end = 7675779)
+gr <- getGeneRegionTrackForGviz(hsdb, chromosome=chr, start=region_start, end=region_end)
 gat <- GenomeAxisTrack()
 
 options(ucscChromosomeNames = FALSE)
