@@ -46,6 +46,7 @@ RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
 #RUN R -e "BiocManager::install('Gviz')"
 RUN R -e "remotes::install_github('ivanek/Gviz')"
+RUN R -e "BiocManager::install('AnnotationHub')"
 
 RUN sudo apt-get update -y && \
     sudo apt-get install -y tcsh
