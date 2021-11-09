@@ -55,7 +55,8 @@ RUN R -e "BiocManager::install('msa')"
 RUN install2.r --error \
     --deps TRUE \
     homologene \
-    ggseqlogo
+    ggseqlogo\
+    bios2mds
 
 RUN R -e "BiocManager::install('ggmsa')"
 
