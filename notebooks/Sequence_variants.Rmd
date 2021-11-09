@@ -36,6 +36,7 @@ library(Gviz)
 library(ggbio)
 library(ggseqlogo)
 library(ggmsa)
+library(bios2mds)
 library(DT)
 
 select <- dplyr::select
@@ -127,12 +128,19 @@ protein_seqs
 ```
 
 ```{r}
-aligned_prots <- msa(protein_seqs)
+alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "_msa_human.fa", sep="_"))
+
+protein_seqs %>%
+  msa() %>%
+  msaConvert("bios2mds::align") %>%
+  export.fasta(outfile=alignment_fn, ncol=60, open="w")
 
 #msaPrettyPrint(aligned_prots, output="pdf", showNames="none", showLogo="none", askForOverwrite=FALSE, verbose=FALSE)
 #print(aligned_prots, show="complete")
-alignCW_as_align <- msaConvert(aligned_prots, "bios2mds::align")
-writeXStringSet(aligned_prots , file.path(params$data_folder, paste(params$gene_symbol, "_msa_human.fa", sep="_")))
+
+ggmsa(alignment_fn, start = 221, end = 280, char_width = 0.5, seq_name = T) +
+  geom_seqlogo() +
+  geom_msaBar()
 ```
 
 ```{r}
@@ -172,5 +180,23 @@ Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
 txm_df <- as.data.frame(Tx_m)
 
 datatable(txm_df)
+```
+
+### Zebrafish
+
+```{r}
+danio_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 7955)
+bsg <- BSgenome.Drerio.UCSC.danRer10
+
+extractTranscriptSeqs(bsg, gene_models)
+```
+
+### Drosophila
+
+```{r}
+drosi_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 7227)
+bsg <- BSgenome.Drerio.UCSC.danRer10
+
+extractTranscriptSeqs(bsg, gene_models)
 ```
 
