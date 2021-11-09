@@ -12,6 +12,9 @@ params:
   report_author: "Tamas Szabo"
   report_time: !r format(Sys.Date(), format="%d/%m/%Y")
   report_folder: "../reports"
+  figure_folder: "../figures"
+  table_folder: "../tables"
+  data_folder: "../data"
 ---
 
 ## Setup
@@ -20,14 +23,19 @@ params:
 # Import tools to be used
 
 library(dplyr)
+library(msa)
+library(seqLogo)
 library(EnsDb.Hsapiens.v86)
 library(EnsDb.Mmusculus.v79)
 library(ensembldb)
 library(homologene)
 library(GenomicRanges)
 library(GenomicFeatures)
+library(Biostrings)
 library(Gviz)
 library(ggbio)
+library(ggseqlogo)
+library(ggmsa)
 library(DT)
 
 select <- dplyr::select
@@ -47,64 +55,110 @@ Tx <- transcripts(
   columns = c("tx_biotype", "gene_name")#, "protein_id", "uniprot_id")
 )
 Tx <- Tx[Tx$tx_biotype != "LRG_gene"]
-tx_df <- as.data.frame(Tx)
+tx_df <- Tx %>%
+  as.data.frame() %>%
+  select(gene_name, chromosome=seqnames, start, end, tx_biotype)
 
 datatable(tx_df)
 ```
 
 ```{r}
-autoplot(Tx)
-```
-
-```{r}
-gene_models <- exonsBy(
-  hsdb, by = "gene",
-  filter = AnnotationFilterList(
-    GeneNameFilter(params$gene_symbol),
-    GeneIdFilter("ENS", "startsWith")
-  )
-)
-autoplot(gene_models[[1]], aes(type = model))
-```
-
-```{r}
-gen <- genome(Tx)
 chr <- as.character(unique(seqnames(Tx)))
 region_start = min(tx_df$start)
 region_end = max(tx_df$end)
 
-gene_models[[1]]$tracknames <- paste0("chr", chr)
-itrack <- IdeogramTrack(genome = "hg38", chromosome = paste0("chr", chr))
-grtrack <- GeneRegionTrack(gene_models, genome = "hg38", chromosome = paste0("chr", chr), name = "Gene Model")
-plotTracks(list(itrack, grtrack), from=region_start, to=region_end)
-```
+genome_location_track <- GenomeAxisTrack()
+genome_region_range <- getGeneRegionTrackForGviz(
+  hsdb, chromosome=chr, start=region_start, end=region_end,
+  filter=AnnotationFilterList(
+    GeneNameFilter(params$gene_symbol),
+    GeneIdFilter("ENS", "startsWith")
+  ), featureIs="tx_biotype"
+)
 
-```{r}
-gr <- getGeneRegionTrackForGviz(hsdb, chromosome=chr, start=region_start, end=region_end)
-gat <- GenomeAxisTrack()
+genome_region_track <- GeneRegionTrack(
+  genome_region_range, name="", transcriptAnnotation="transcript",
+  background.title="white"
+)
 
 options(ucscChromosomeNames = FALSE)
-
-plotTracks(list(gat, GeneRegionTrack(gr)))
+plotTracks(list(genome_location_track, genome_region_track))
 ```
 
 ### Nucleotide sequences
 
 ```{r}
 dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
-yTxSeqs <- extractTranscriptSeqs(dna, gene_models)
 
-yTxSeqs
+nt_seqs <- hsdb %>%
+  exonsBy(
+    by = "tx",
+    filter = AnnotationFilterList(
+      GeneNameFilter(params$gene_symbol),
+      GeneIdFilter("ENS", "startsWith")
+    )
+  ) %>%
+  extractTranscriptSeqs(dna, .)
+
+nt_seqs
 ```
+
+```{r}
+if(!dir.exists(params$data_folder)) dir.create(params$data_folder, recursive=TRUE)
+
+writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_nt_human.fa", sep="_")))
+```
+
 
 ### Protein sequences
 
 ```{r}
 protein_seqs <- proteins(
-  hsdb, filter = GeneNameFilter(params$gene_symbol), return.type = "AAStringSet"
+  hsdb, return.type = "AAStringSet",
+  filter = AnnotationFilterList(
+    GeneNameFilter(params$gene_symbol),
+    GeneIdFilter("ENS", "startsWith")
+  )
 )
 
+writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_aa_human.fa", sep="_")))
+
 protein_seqs
+```
+
+```{r}
+aligned_prots <- msa(protein_seqs)
+
+#msaPrettyPrint(aligned_prots, output="pdf", showNames="none", showLogo="none", askForOverwrite=FALSE, verbose=FALSE)
+#print(aligned_prots, show="complete")
+alignCW_as_align <- msaConvert(aligned_prots, "bios2mds::align")
+writeXStringSet(aligned_prots , file.path(params$data_folder, paste(params$gene_symbol, "_msa_human.fa", sep="_")))
+```
+
+```{r}
+aligned_prots %>%
+  consensusMatrix(as.prob=TRUE) %>%
+  seqLogo()
+```
+
+```{r}
+p <- ggmsa(protein_seqs, start = 221, end = 280, char_width = 0.5, seq_name = T) +
+  geom_seqlogo() +
+  geom_msaBar()
+
+p
+```
+
+```{r}
+p <- ggmsa(Biostrings::readAAStringSet(aligned_prots), start = 221, end = 280, char_width = 0.5, seq_name = T) +
+  geom_seqlogo() +
+  geom_msaBar()
+
+p
+```
+
+```{r}
+ggseqlogo(aligned_prots)
 ```
 
 
@@ -118,13 +172,5 @@ Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
 txm_df <- as.data.frame(Tx_m)
 
 datatable(txm_df)
-```
-
-### Zebrafish
-
-```{r}
-bsg <- BSgenome.Drerio.UCSC.danRer10
-
-extractTranscriptSeqs(bsg, gene_models)
 ```
 
