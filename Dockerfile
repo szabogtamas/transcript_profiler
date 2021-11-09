@@ -29,8 +29,7 @@ RUN install2.r --error \
     ggridges \
     plotly \
     openxlsx \
-    readxl \
-    homologene
+    readxl
 
 RUN R -e "BiocManager::install('ggbio')"
 RUN R -e "BiocManager::install('wiggleplotr')"
@@ -50,6 +49,15 @@ RUN R -e "BiocManager::install('AnnotationHub')"
 
 RUN sudo apt-get update -y && \
     sudo apt-get install -y tcsh
+
+RUN R -e "BiocManager::install('msa')"
+
+RUN install2.r --error \
+    --deps TRUE \
+    homologene \
+    ggseqlogo
+
+RUN R -e "BiocManager::install('ggmsa')"
 
 ADD ./third_party /usr/local/lib/third_party
 RUN mkdir -p /usr/cbs/packages && \
