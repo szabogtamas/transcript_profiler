@@ -25,8 +25,6 @@ params:
 library(dplyr)
 library(msa)
 library(seqLogo)
-library(EnsDb.Hsapiens.v86)
-library(EnsDb.Mmusculus.v79)
 library(ensembldb)
 library(homologene)
 library(GenomicRanges)
@@ -49,8 +47,17 @@ for (dr in c('report_folder', 'figure_folder', 'table_folder', 'data_folder')){
 ```
 
 ```{r}
+library(EnsDb.Hsapiens.v86)
+library(EnsDb.Mmusculus.v79)
+library(TxDb.Drerio.UCSC.danRer10.refGene)
+library(BSgenome.Drerio.UCSC.danRer10)
+library(BSgenome.Dmelanogaster.UCSC.dm6)
+
 hsdb <- EnsDb.Hsapiens.v86
 mmdb <- EnsDb.Mmusculus.v79
+drtx <- TxDb.Drerio.UCSC.danRer10.refGene
+drdb <- BSgenome.Drerio.UCSC.danRer10
+dmdb <- BSgenome.Dmelanogaster.UCSC.dm6
 
 hub_dir <- "work/hub"
 if(!dir.exists(hub_dir)) dir.create(hub_dir, recursive=TRUE)
@@ -253,20 +260,74 @@ writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_sy
 protein_seqs
 ```
 
-### Zebrafish
+## Zebrafish
 
 ```{r}
-danio_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 7955)
-bsg <- BSgenome.Drerio.UCSC.danRer10
+danio_id <- params$gene_symbol %>%
+  homologene(inTax = 9606, outTax = 7955) %>%
+  .[["7955_ID"]] %>%
+  as.character()
 
-extractTranscriptSeqs(bsg, gene_models)
+Tx_f <- transcriptsBy(drtx, "gene")[[danio_id]]
+txf_df <- Tx_f %>%
+  as.data.frame() %>%
+  select(tx_id, tx_name, chromosome=seqnames, start, end)
+
+datatable(txf_df)
+```
+
+```{r}
+gr <- exonsBy(drtx, by = "tx", use.names=TRUE)[unique(txf_df$tx_name)]
+gr <- unlist(gr)
+elementMetadata(gr)$transcript <- names(gr)
+track <- Gviz::GeneRegionTrack(gr)
+Gviz::plotTracks(track)
+```
+
+```{r warning=FALSE, message=FALSE}
+chr <- as.character(unique(seqnames(Tx_f)))
+region_start = min(txf_df$start)
+region_end = max(txf_df$end)
+
+genome_location_track <- GenomeAxisTrack()
+genome_region_range <- drtx %>%
+  exonsBy("tx", use.names=TRUE) %>%
+  .[unique(txf_df$tx_name)] %>%
+  unlist()
+elementMetadata(genome_region_range)$transcript <- names(genome_region_range)
+
+genome_region_track <- GeneRegionTrack(
+  genome_region_range, name="", transcriptAnnotation="transcript",
+  background.title="white"
+)
+
+plotTracks(list(genome_location_track, genome_region_track))
+```
+
+### Nucleotide sequences
+
+```{r}
+nt_seqs <- drdb %>%
+  getSeq(Tx_f) %>%
+  setNames(txf_df$tx_name)
+
+writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_mouse.fa", sep="_")))
+
+nt_seqs
+```
+
+### Protein sequences
+
+```{r}
+# It is not straightforward to lookup protein sequences in available sources. Maybe Uniprot?
 ```
 
 ### Drosophila
 
 ```{r}
 drosi_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 7227)
-bsg <- BSgenome.Drerio.UCSC.danRer10
+dmdb <- BSgenome.Drerio.UCSC.danRer10
+dmtx <- TxDb.Dmelanogaster.UCSC.dm6.ensGene
 
 extractTranscriptSeqs(bsg, gene_models)
 ```
