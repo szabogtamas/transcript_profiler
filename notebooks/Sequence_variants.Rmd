@@ -56,6 +56,7 @@ hub_dir <- "work/hub"
 if(!dir.exists(hub_dir)) dir.create(hub_dir, recursive=TRUE)
 setAnnotationHubOption("CACHE", hub_dir)
 hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
+mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 ```
 
 ## Human transcripts
@@ -180,11 +181,76 @@ prot_msa_list %>%
 ### Transcript annotations for gene
 
 ```{r}
-mouse_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 10090)
+mouse_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 10090)$`10090`
 Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
-txm_df <- as.data.frame(Tx_m)
+
+Tx_m <- transcripts(
+  mmdb, filter = GeneNameFilter(mouse_symbol),
+  columns = c("tx_biotype", "gene_name")#, "protein_id", "uniprot_id")
+)
+Tx_m <- Tx_m[Tx_m$tx_biotype != "LRG_gene"]
+txm_df <- Tx_m %>%
+  as.data.frame() %>%
+  select(gene_name, chromosome=seqnames, start, end, tx_biotype)
 
 datatable(txm_df)
+```
+
+```{r}
+chr <- as.character(unique(seqnames(Tx_m)))
+region_start = min(txm_df$start)
+region_end = max(txm_df$end)
+
+genome_location_track <- GenomeAxisTrack()
+genome_region_range <- getGeneRegionTrackForGviz(
+  mmdb, chromosome=chr, start=region_start, end=region_end,
+  filter=AnnotationFilterList(
+    GeneNameFilter(mouse_symbol),
+    GeneIdFilter("ENS", "startsWith")
+  ), featureIs="tx_biotype"
+)
+
+genome_region_track <- GeneRegionTrack(
+  genome_region_range, name="", transcriptAnnotation="transcript",
+  background.title="white"
+)
+
+options(ucscChromosomeNames = FALSE)
+plotTracks(list(genome_location_track, genome_region_track))
+```
+
+### Nucleotide sequences
+
+```{r}
+nt_seqs <- mmdb %>%
+  exonsBy(
+    by = "tx",
+    filter = AnnotationFilterList(
+      GeneNameFilter(mouse_symbol),
+      GeneIdFilter("ENS", "startsWith")
+    )
+  ) %>%
+  extractTranscriptSeqs(mm_dna, .)
+
+writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_mouse.fa", sep="_")))
+
+nt_seqs
+```
+
+### Protein sequences
+
+```{r}
+protein_seqs <- proteins(
+  mmdb, return.type = "AAStringSet",
+  filter = AnnotationFilterList(
+    GeneNameFilter(mouse_symbol),
+    GeneIdFilter("ENS", "startsWith")
+  )
+)
+
+writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_mouse.fa", sep="_")))
+
+protein_seqs
 ```
 
 ### Zebrafish
