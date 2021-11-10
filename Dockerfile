@@ -48,17 +48,17 @@ RUN R -e "remotes::install_github('ivanek/Gviz')"
 RUN R -e "BiocManager::install('AnnotationHub')"
 
 RUN sudo apt-get update -y && \
-    sudo apt-get install -y tcsh
+    sudo apt-get install -y tcsh && \
+    sudo apt-get install -y r-cran-rgl
 
 RUN R -e "BiocManager::install('msa')"
+RUN R -e "BiocManager::install('ggmsa')"
 
 RUN install2.r --error \
     --deps TRUE \
     homologene \
     ggseqlogo\
     bios2mds
-
-RUN R -e "BiocManager::install('ggmsa')"
 
 ADD ./third_party /usr/local/lib/third_party
 RUN mkdir -p /usr/cbs/packages && \
