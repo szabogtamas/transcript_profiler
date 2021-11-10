@@ -41,3 +41,11 @@ for (fasta_file in input_proteins){
 }
 ```
 
+```{r}
+for (fasta_file in input_proteins){
+  fasta_file %>%
+    paste("/usr/cbs/packages/netOglyc-3.1/netOglyc", .) %>%
+    paste("> netoglyc_tmp.txt") %>%
+    system()
+}
+```
