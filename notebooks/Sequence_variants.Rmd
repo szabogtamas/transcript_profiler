@@ -111,7 +111,7 @@ nt_seqs <- hsdb %>%
   ) %>%
   extractTranscriptSeqs(hs_dna, .)
 
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_nt_human.fa", sep="_")))
+writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_human.fa", sep="_")))
 
 nt_seqs
 ```
@@ -127,18 +127,23 @@ protein_seqs <- proteins(
   )
 )
 
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_aa_human.fa", sep="_")))
+writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_human.fa", sep="_")))
 
 protein_seqs
 ```
 
 ```{r}
-alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "_msa_human.fa", sep="_"))
+alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
 
 protein_seqs %>%
   msa() %>%
   msaConvert("bios2mds::align") %>%
-  export.fasta(outfile=alignment_fn, ncol=60, open="w")
+  export.fasta(outfile=alignment_fn)
+
+alignment_fn %>%
+  readLines() %>%
+  gsub("NA$", "", .) %>%
+  writeLines(alignment_fn)
 
 #msaPrettyPrint(aligned_prots, output="pdf", showNames="none", showLogo="none", askForOverwrite=FALSE, verbose=FALSE)
 #print(aligned_prots, show="complete")
@@ -147,6 +152,11 @@ ggmsa(alignment_fn, start = 221, end = 280, char_width = 0.5, seq_name = T) +
   geom_seqlogo() +
   geom_msaBar()
 ```
+
+```{r}
+zz <- readAAStringSet(alignment_fn)
+```
+
 
 ```{r}
 aligned_prots %>%
