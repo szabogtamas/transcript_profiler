@@ -135,10 +135,11 @@ protein_seqs
 ```{r}
 alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
 
-protein_seqs %>%
+prot_msa_list <- protein_seqs %>%
   msa() %>%
-  msaConvert("bios2mds::align") %>%
-  export.fasta(outfile=alignment_fn)
+  msaConvert("bios2mds::align")
+
+export.fasta(prot_msa_list, outfile=alignment_fn)
 
 alignment_fn %>%
   readLines() %>%
@@ -147,43 +148,32 @@ alignment_fn %>%
 
 #msaPrettyPrint(aligned_prots, output="pdf", showNames="none", showLogo="none", askForOverwrite=FALSE, verbose=FALSE)
 #print(aligned_prots, show="complete")
+prot_msa <- readAAStringSet(alignment_fn)
 
-ggmsa(alignment_fn, start = 221, end = 280, char_width = 0.5, seq_name = T) +
-  geom_seqlogo() +
-  geom_msaBar()
+prot_msa
 ```
 
-```{r}
-zz <- readAAStringSet(alignment_fn)
-```
+```{r message=FALSE, warning=FALSE}
+align_start <- 1
+align_end <- 100
+#align_start <- NULL
+#align_end <- NULL
 
-
-```{r}
-aligned_prots %>%
-  consensusMatrix(as.prob=TRUE) %>%
-  seqLogo()
-```
-
-```{r}
-p <- ggmsa(protein_seqs, start = 221, end = 280, char_width = 0.5, seq_name = T) +
+p <- ggmsa(alignment_fn, start=align_start, end=align_end, seq_name=TRUE) +
   geom_seqlogo() +
   geom_msaBar()
 
-p
+print(p)
 ```
 
 ```{r}
-p <- ggmsa(Biostrings::readAAStringSet(aligned_prots), start = 221, end = 280, char_width = 0.5, seq_name = T) +
-  geom_seqlogo() +
-  geom_msaBar()
-
-p
+prot_msa_list %>%
+  purrr::map(function(x) gsub("-", " ", x[1:50])) %>%
+  purrr::map(paste, collapse="") %>%
+  {.[. != ""]} %>%
+  unlist() %>%
+  ggseqlogo()
 ```
-
-```{r}
-ggseqlogo(aligned_prots)
-```
-
 
 ## Mouse transcripts
 
