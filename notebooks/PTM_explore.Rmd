@@ -1,13 +1,21 @@
 ---
-title: "Post-translational modifications"
+title: "`r params$report_title`"
 output: 
   html_document:
-    code_folding: hide
     toc: true
-    toc_float:
-      toc_collapsed: true
+    toc_float: true
+    theme: united
+    code_folding: hide
+params:
+  gene_symbol: "TP53"
+  report_title: "Potential posttranlational modifications of `r params$gene_symbol`"
+  report_author: "Tamas Szabo"
+  report_time: !r format(Sys.Date(), format="%d/%m/%Y")
+  report_folder: "../reports"
+  figure_folder: "../figures"
+  table_folder: "../tables"
+  data_folder: "../data"
 ---
-
 ## Setup
 
 ```{r message = FALSE, warning = FALSE}
@@ -17,6 +25,19 @@ library(dplyr)
 ```
 
 ```{r}
-system("/usr/cbs/packages/netNglyc-1.0/netNglyc ./data/TP53__msa_human.fa")
+input_proteins <- params$data_folder %>%
+  dir(full.names=TRUE) %>%
+  .[grepl("_aa_", .)]
+
+input_proteins
+```
+
+```{r}
+for (fasta_file in input_proteins){
+  fasta_file %>%
+    paste("/usr/cbs/packages/netNglyc-1.0/netNglyc", .) %>%
+    paste("> netnglyc_tmp.txt") %>%
+    system()
+}
 ```
 
