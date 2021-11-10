@@ -42,8 +42,20 @@ library(DT)
 select <- dplyr::select
 filter <- dplyr::filter
 
+for (dr in c('report_folder', 'figure_folder', 'table_folder', 'data_folder')){
+  drn <- params[[dr]]
+  if(!dir.exists(drn)) dir.create(drn, recursive=TRUE)
+}
+```
+
+```{r}
 hsdb <- EnsDb.Hsapiens.v86
 mmdb <- EnsDb.Mmusculus.v79
+
+hub_dir <- "work/hub"
+if(!dir.exists(hub_dir)) dir.create(hub_dir, recursive=TRUE)
+setAnnotationHubOption("CACHE", hub_dir)
+hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
 ```
 
 ## Human transcripts
@@ -89,8 +101,6 @@ plotTracks(list(genome_location_track, genome_region_track))
 ### Nucleotide sequences
 
 ```{r}
-dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
-
 nt_seqs <- hsdb %>%
   exonsBy(
     by = "tx",
@@ -99,17 +109,12 @@ nt_seqs <- hsdb %>%
       GeneIdFilter("ENS", "startsWith")
     )
   ) %>%
-  extractTranscriptSeqs(dna, .)
+  extractTranscriptSeqs(hs_dna, .)
+
+writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_nt_human.fa", sep="_")))
 
 nt_seqs
 ```
-
-```{r}
-if(!dir.exists(params$data_folder)) dir.create(params$data_folder, recursive=TRUE)
-
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "_nt_human.fa", sep="_")))
-```
-
 
 ### Protein sequences
 
