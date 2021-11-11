@@ -54,15 +54,15 @@ RUN sudo apt-get update -y && \
     sudo apt-get install -y r-cran-rgl
 
 RUN R -e "BiocManager::install('msa')"
+RUN R -e "BiocManager::install('ggmsa')"
 RUN R -e "BiocManager::install('seqinr')"
 RUN R -e "BiocManager::install('bios2mds')"
+RUN R -e "BiocManager::install('seqmagick')"
 
 RUN install2.r --error \
     --deps TRUE \
     homologene \
-    ggseqlogo \
-    ggmsa \
-    seqmagick
+    ggseqlogo    
 
 ADD ./third_party /usr/local/lib/third_party
 RUN mkdir -p /usr/cbs/packages && \
