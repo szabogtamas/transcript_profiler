@@ -49,3 +49,6 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Jupyter checkpoints
+.ipynb_checkpoints
