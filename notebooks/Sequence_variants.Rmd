@@ -36,7 +36,7 @@ library(ggseqlogo)
 library(ggmsa)
 library(bios2mds)
 library(DT)
-
+library(httr)
 select <- dplyr::select
 filter <- dplyr::filter
 
@@ -63,7 +63,7 @@ dmdb <- BSgenome.Dmelanogaster.UCSC.dm6
 
 hub_dir <- "work/hub"
 if(!dir.exists(hub_dir)) dir.create(hub_dir, recursive=TRUE)
-setAnnotationHubOption("CACHE", hub_dir)
+AnnotationHub::setAnnotationHubOption("CACHE", hub_dir)
 hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
 mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 ```
