@@ -70,6 +70,20 @@ mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 
 uniprot_base_url <- "https://www.uniprot.org/uploadlists/"
 uniprot_api_url <- "www.ebi.ac.uk/proteins/api"
+
+parse_uniprot <- function(uni_acc){
+  uniprot_entry <- uni_acc %>%
+    file.path(uniprot_api_url, "proteins", .) %>%
+    GET() %>%
+    content()
+  
+  uniprot_entry$features %>%
+    purrr::map_dfr(as.data.frame) %>%
+    mutate(
+      ACCESSION = uni_acc,
+      SEQ = uniprot_entry$sequence$sequence
+    )
+}
 ```
 
 ## Human transcripts
@@ -360,11 +374,6 @@ writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_sy
 protein_seqs
 ```
 
-
-```{r}
-```
-
-
 ## Drosophila
 
 ```{r}
@@ -415,6 +424,32 @@ nt_seqs
 
 ### Protein sequences
 
+```{r warning=FALSE, message=FALSE}
+uniprot_id_mapping <- uniprot_base_url %>% 
+  GET(
+    query = list(
+      from = "REFSEQ_NT_ID", to = "ACC", format = "tab",
+      query = paste(txf_df$tx_name, collapse=" ")
+    )
+  ) %>%
+  content() %>%
+  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
+
+protein_features <- uniprot_id_mapping$To %>%
+  purrr::map_dfr(parse_uniprot)
+
+protein_features %>%
+  select(-SEQ) %>%
+  datatable()
+```
+
 ```{r}
-# ???
+protein_seqs <- protein_features %>%
+  distinct(ACCESSION, SEQ) %>%
+  {setNames(.$SEQ, .$ACCESSION)} %>%
+  AAStringSet(protein_seqs)
+
+writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_fish.fa", sep="_")))
+
+protein_seqs
 ```
