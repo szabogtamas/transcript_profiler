@@ -251,6 +251,8 @@ graphics.off()
 plotTracks(list(aligned_region_track, genome_location_track))
 ```
 
+### Annotated features
+
 ```{r warning=FALSE, message=FALSE}
 uniprot_id_mapping <- uniprot_base_url %>% 
   GET(
@@ -263,12 +265,26 @@ uniprot_id_mapping <- uniprot_base_url %>%
   read.csv(text=., sep="\t", stringsAsFactors=FALSE)
 
 protein_features <- uniprot_id_mapping$To %>%
-  purrr::map_dfr(parse_uniprot)
+  purrr::map_dfr(parse_uniprot) %>%
+  left_join(uniprot_id_mapping, by=c(ACCESSION="To")) %>%
+  dplyr::rename(ID = From) %>%
+  distinct()
 
 protein_features %>%
   select(-SEQ) %>%
   datatable()
 ```
+
+```{r}
+main_prots <- c("ENSP00000398846", "ENSP00000482903")
+
+protein_features %>%
+  filter(ID %in% main_prots) %>%
+  filter(category == "PTM") %>%
+  select(-SEQ)
+```
+
+
 
 ## Mouse transcripts
 
