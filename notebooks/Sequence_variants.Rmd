@@ -373,7 +373,11 @@ protein_features %>%
     end = as.numeric(end),
     width = end-begin
   ) %>%
-  left_join(msa_position_map, by=c("ACCESSION", begin="Original_pos"))
+  left_join(msa_position_map, by=c("ACCESSION", begin="Original_pos")) %>%
+  mutate(
+    begin = Aligned_pos,
+    end = begin + width
+  )
 ```
 
 
