@@ -377,7 +377,9 @@ protein_features %>%
   mutate(
     begin = Aligned_pos,
     end = begin + width
-  )
+  ) %>%
+  ggplot(aes(x=begin, y=description)) +
+  geom_tile()
 ```
 
 
