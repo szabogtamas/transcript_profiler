@@ -125,8 +125,14 @@ genome_region_track <- GeneRegionTrack(
   background.title="white"
 )
 
-pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_human.pdf", sep="_")))
-plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
+pdf(
+  file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_human.pdf", sep="_")),
+  width=7.2, height=3.6
+)
+plotTracks(
+  list(genome_location_track, genome_region_track),
+  main=paste("Aligned protein sequence variants of", params$gene_symbol)
+)
 graphics.off()
 plotTracks(list(genome_location_track, genome_region_track))
 ```
@@ -206,6 +212,43 @@ prot_msa_list %>%
   {.[. != ""]} %>%
   unlist() %>%
   ggseqlogo()
+```
+
+```{r}
+aligned_ranges <- prot_msa %>%
+  as.list() %>%
+  purrr::map_df(
+    function(x, y) {
+      x %>%
+        stringr::str_locate_all('[A-Z]+') %>%
+        data.frame() %>%
+        mutate(
+          seqname = "P0",
+          strand = "+"
+        )
+    }, .id="transcript"
+  )
+
+aligned_region_track <- aligned_ranges %>%
+  makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
+  GeneRegionTrack(
+  name="", transcriptAnnotation="transcript",
+  background.title="white"
+)
+
+genome_location_track <- GenomeAxisTrack()
+
+pdf(
+  file.path(params$figure_folder, paste(params$gene_symbol, "consensus_protein_human.pdf", sep="_")),
+  width=7.2, height=3.6
+)
+plotTracks(
+  list(genome_location_track, aligned_region_track),
+  main=paste("Aligned protein sequence variants of", params$gene_symbol),
+  main.cex=1
+)
+graphics.off()
+plotTracks(list(genome_location_track, aligned_region_track))
 ```
 
 ```{r warning=FALSE, message=FALSE}
