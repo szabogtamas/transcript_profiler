@@ -62,7 +62,7 @@ drdb <- BSgenome.Drerio.UCSC.danRer10
 dmtx <- TxDb.Dmelanogaster.UCSC.dm6.ensGene
 dmdb <- BSgenome.Dmelanogaster.UCSC.dm6
 
-hub_dir <- "work/hub"
+hub_dir <- "/home/rstudio/data/TwoBit"
 if(!dir.exists(hub_dir)) dir.create(hub_dir, recursive=TRUE)
 AnnotationHub::setAnnotationHubOption("CACHE", hub_dir)
 hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)

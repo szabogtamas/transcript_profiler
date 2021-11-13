@@ -85,6 +85,9 @@ RUN mkdir -p /usr/cbs/packages && \
 #  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_dm6.bb -P /home/rstudio/data/JASPAR
 ADD ./third_party/JASPAR /usr/local/lib/third_party/JASPAR
 
+RUN mkdir -p /home/rstudio/data/TwoBit && \
+  R -e "library(EnsDb.Hsapiens.v86); library(EnsDb.Mmusculus.v79); AnnotationHub::setAnnotationHubOption('CACHE', '/home/rstudio/data/TwoBit'); ensembldb:::getGenomeTwoBitFile(EnsDb.Hsapiens.v86); ensembldb:::getGenomeTwoBitFile(EnsDb.Mmusculus.v79)"
+
 RUN chmod a+rwx -R /home/rstudio
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
