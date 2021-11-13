@@ -172,7 +172,7 @@ protein_seqs
 ```
 
 ```{r}
-alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
+alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_ensembl_human.fa", sep="_"))
 
 prot_msa_list <- protein_seqs %>%
   msa() %>%
@@ -239,7 +239,7 @@ aligned_region_track <- aligned_ranges %>%
 genome_location_track <- GenomeAxisTrack()
 
 pdf(
-  file.path(params$figure_folder, paste(params$gene_symbol, "consensus_protein_human.pdf", sep="_")),
+  file.path(params$figure_folder, paste(params$gene_symbol, "ensembl_proteins_human.pdf", sep="_")),
   width=7.2, height=3.6
 )
 plotTracks(
@@ -276,12 +276,104 @@ protein_features %>%
 ```
 
 ```{r}
-main_prots <- c("ENSP00000398846", "ENSP00000482903")
+protein_seqs <- protein_features %>%
+  distinct(ACCESSION, SEQ) %>%
+  {setNames(.$SEQ, .$ACCESSION)} %>%
+  AAStringSet()
+
+writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_human.fa", sep="_")))
+
+protein_seqs
+```
+
+```{r}
+alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
+
+prot_msa_list <- protein_seqs %>%
+  msa() %>%
+  msaConvert("bios2mds::align")
+
+export.fasta(prot_msa_list, outfile=alignment_fn)
+
+alignment_fn %>%
+  readLines() %>%
+  gsub("NA$", "", .) %>%
+  writeLines(alignment_fn)
+
+prot_msa <- readAAStringSet(alignment_fn)
+
+prot_msa
+```
+
+```{r}
+msa_position_map <- aligned_ranges %>%
+  dplyr::rename(ID = transcript) %>%
+  mutate(
+    Aligned_pos = purrr::map2(start, end, seq)
+  ) %>%
+  unnest(Aligned_pos) %>%
+  arrange(ID, Aligned_pos) %>%
+  group_by(ID) %>%
+  mutate(
+    Original_pos = seq(1, n())
+  ) %>%
+  ungroup() %>%
+  select(ID, Original_pos, Aligned_pos)
+
+msa_position_map
+```
+
+```{r}
+aligned_ranges <- prot_msa %>%
+  as.list() %>%
+  purrr::map_df(
+    function(x, y) {
+      x %>%
+        stringr::str_locate_all('[A-Z]+') %>%
+        data.frame() %>%
+        mutate(
+          seqname = "P0",
+          strand = "+"
+        )
+    }, .id="transcript"
+  )
+
+aligned_region_track <- aligned_ranges %>%
+  makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
+  GeneRegionTrack(
+  name="", transcriptAnnotation="transcript",
+  background.title="white"
+)
+
+genome_location_track <- GenomeAxisTrack()
+
+pdf(
+  file.path(params$figure_folder, paste(params$gene_symbol, "ensembl_proteins_human.pdf", sep="_")),
+  width=7.2, height=3.6
+)
+plotTracks(
+  list(genome_location_track, aligned_region_track),
+  main=paste("Aligned protein sequence variants of", params$gene_symbol),
+  cex.main=1
+)
+graphics.off()
+plotTracks(list(aligned_region_track, genome_location_track))
+```
+
+```{r}
+main_prots <- c("P04637", "E7EQX7")
 
 protein_features %>%
   filter(ID %in% main_prots) %>%
   filter(category == "PTM") %>%
-  select(-SEQ)
+  distinct(ID, begin, end, description) %>%
+  arrange(description) %>%
+  mutate(
+    begin = as.numeric(begin),
+    end = as.numeric(end),
+    width = end-begin
+  ) %>%
+  left_join(msa_position_map, by=c("ID", begin="Original_pos"))
 ```
 
 
