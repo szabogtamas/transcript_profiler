@@ -307,18 +307,18 @@ prot_msa
 
 ```{r}
 msa_position_map <- aligned_ranges %>%
-  dplyr::rename(ID = transcript) %>%
+  dplyr::rename(ACCESSION = transcript) %>%
   mutate(
     Aligned_pos = purrr::map2(start, end, seq)
   ) %>%
   unnest(Aligned_pos) %>%
-  arrange(ID, Aligned_pos) %>%
-  group_by(ID) %>%
+  arrange(ACCESSION, Aligned_pos) %>%
+  group_by(ACCESSION) %>%
   mutate(
     Original_pos = seq(1, n())
   ) %>%
   ungroup() %>%
-  select(ID, Original_pos, Aligned_pos)
+  select(ACCESSION, Original_pos, Aligned_pos)
 
 msa_position_map
 ```
