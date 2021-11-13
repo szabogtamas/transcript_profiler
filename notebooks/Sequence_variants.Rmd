@@ -77,12 +77,15 @@ parse_uniprot <- function(uni_acc){
     GET() %>%
     content()
   
-  uniprot_entry$features %>%
+  features <- uniprot_entry$features %>%
     purrr::map_dfr(as.data.frame) %>%
     mutate(
       ACCESSION = uni_acc,
       SEQ = uniprot_entry$sequence$sequence
     )
+  if (is.null(features$description)) features$description <- NA
+  
+  select(features, ACCESSION, type, category, description, begin, end, SEQ)
 }
 ```
 
@@ -205,6 +208,25 @@ prot_msa_list %>%
   ggseqlogo()
 ```
 
+```{r warning=FALSE, message=FALSE}
+uniprot_id_mapping <- uniprot_base_url %>% 
+  GET(
+    query = list(
+      from = "ENSEMBL_PRO_ID", to = "ACC", format = "tab",
+      query = paste(names(protein_seqs), collapse=" ")
+    )
+  ) %>%
+  content() %>%
+  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
+
+protein_features <- uniprot_id_mapping$To %>%
+  purrr::map_dfr(parse_uniprot)
+
+protein_features %>%
+  select(-SEQ) %>%
+  datatable()
+```
+
 ## Mouse transcripts
 
 ### Transcript annotations for gene
@@ -282,6 +304,25 @@ protein_seqs <- proteins(
 writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_mouse.fa", sep="_")))
 
 protein_seqs
+```
+
+```{r warning=FALSE, message=FALSE}
+uniprot_id_mapping <- uniprot_base_url %>% 
+  GET(
+    query = list(
+      from = "ENSEMBL_PRO_ID", to = "ACC", format = "tab",
+      query = paste(names(protein_seqs), collapse=" ")
+    )
+  ) %>%
+  content() %>%
+  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
+
+protein_features <- uniprot_id_mapping$To %>%
+  purrr::map_dfr(parse_uniprot)
+
+protein_features %>%
+  select(-SEQ) %>%
+  datatable()
 ```
 
 ## Zebrafish
