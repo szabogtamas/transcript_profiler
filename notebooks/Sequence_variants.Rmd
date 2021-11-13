@@ -11,9 +11,7 @@ params:
   report_title: "Transciprts of `r params$gene_symbol`"
   report_author: "Tamas Szabo"
   report_time: !r format(Sys.Date(), format="%d/%m/%Y")
-  report_folder: "../reports"
   figure_folder: "../figures"
-  table_folder: "../tables"
   data_folder: "../data"
 ---
 
@@ -41,7 +39,7 @@ library(httr)
 select <- dplyr::select
 filter <- dplyr::filter
 
-for (dr in c('report_folder', 'figure_folder', 'table_folder', 'data_folder')){
+for (dr in c('figure_folder', 'table_folder')){
   drn <- params[[dr]]
   if(!dir.exists(drn)) dir.create(drn, recursive=TRUE)
 }
@@ -123,6 +121,9 @@ genome_region_track <- GeneRegionTrack(
 )
 
 options(ucscChromosomeNames = FALSE)
+pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_human.pdf", sep="_")))
+plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
+graphics.off()
 plotTracks(list(genome_location_track, genome_region_track))
 ```
 
@@ -243,6 +244,9 @@ genome_region_track <- GeneRegionTrack(
 )
 
 options(ucscChromosomeNames = FALSE)
+pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_mouse.pdf", sep="_")))
+plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
+graphics.off()
 plotTracks(list(genome_location_track, genome_region_track))
 ```
 
@@ -313,6 +317,9 @@ genome_region_track <- GeneRegionTrack(
   background.title="white"
 )
 
+pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_fish.pdf", sep="_")))
+plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
+graphics.off()
 plotTracks(list(genome_location_track, genome_region_track))
 ```
 
@@ -407,6 +414,9 @@ genome_region_track <- GeneRegionTrack(
   background.title="white"
 )
 
+pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_fly.pdf", sep="_")))
+plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
+graphics.off()
 plotTracks(list(genome_location_track, genome_region_track))
 ```
 
