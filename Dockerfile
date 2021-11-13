@@ -64,7 +64,7 @@ RUN install2.r --error \
     homologene \
     ggseqlogo    
 
-ADD ./third_party /usr/local/lib/third_party
+ADD ./third_party/CBS /usr/local/lib/third_party/CBS
 RUN mkdir -p /usr/cbs/packages && \
   tar -xvzf /usr/local/lib/third_party/netNglyc-1.0d.Linux.tar.gz -C /usr/cbs/packages && \
   sed -i 's#/usr/cbs/packages/netNglyc/1.0/netNglyc-1.0#/usr/cbs/packages/netNglyc-1.0#g' /usr/cbs/packages/netNglyc-1.0/netNglyc && \
@@ -78,11 +78,12 @@ RUN mkdir -p /usr/cbs/packages && \
   sed -i 's#/usr/local/python/bin/python#/usr/bin/python2#g' /usr/cbs/packages/ape-1.0/ape && \
   sudo chmod -R 777 /usr/cbs/packages/
 
-RUN mkdir -p /home/rstudio/data/JASPAR && \
-  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_hg19.bb -P /home/rstudio/data/JASPAR && \
-  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_mm10.bb -P /home/rstudio/data/JASPAR && \
-  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_danRer11.bb -P /home/rstudio/data/JASPAR && \
-  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_dm6.bb -P /home/rstudio/data/JASPAR
+# RUN mkdir -p /home/rstudio/data/JASPAR && \
+#  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_hg19.bb -P /home/rstudio/data/JASPAR && \
+#  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_mm10.bb -P /home/rstudio/data/JASPAR && \
+#  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_danRer11.bb -P /home/rstudio/data/JASPAR && \
+#  wget http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JASPAR2022_dm6.bb -P /home/rstudio/data/JASPAR
+ADD ./third_party/JASPAR /usr/local/lib/third_party/JASPAR
 
 RUN chmod a+rwx -R /home/rstudio
 
