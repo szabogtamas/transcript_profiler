@@ -69,6 +69,8 @@ mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 uniprot_base_url <- "https://www.uniprot.org/uploadlists/"
 uniprot_api_url <- "www.ebi.ac.uk/proteins/api"
 
+options(ucscChromosomeNames = FALSE)
+
 parse_uniprot <- function(uni_acc){
   uniprot_entry <- uni_acc %>%
     file.path(uniprot_api_url, "proteins", .) %>%
@@ -120,7 +122,6 @@ genome_region_track <- GeneRegionTrack(
   background.title="white"
 )
 
-options(ucscChromosomeNames = FALSE)
 pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_human.pdf", sep="_")))
 plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
 graphics.off()
@@ -243,7 +244,6 @@ genome_region_track <- GeneRegionTrack(
   background.title="white"
 )
 
-options(ucscChromosomeNames = FALSE)
 pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_mouse.pdf", sep="_")))
 plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
 graphics.off()
@@ -285,6 +285,8 @@ protein_seqs
 ```
 
 ## Zebrafish
+
+### Transcript annotations for gene
 
 ```{r}
 danio_id <- params$gene_symbol %>%
@@ -382,6 +384,8 @@ protein_seqs
 ```
 
 ## Drosophila
+
+### Transcript annotations for gene
 
 ```{r}
 drpsi_id <- params$gene_symbol %>%
