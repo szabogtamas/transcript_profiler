@@ -364,16 +364,16 @@ plotTracks(list(aligned_region_track, genome_location_track))
 main_prots <- c("P04637", "E7EQX7")
 
 protein_features %>%
-  filter(ID %in% main_prots) %>%
+  filter(ACCESSION %in% main_prots) %>%
   filter(category == "PTM") %>%
-  distinct(ID, begin, end, description) %>%
+  distinct(ACCESSION, begin, end, description) %>%
   arrange(description) %>%
   mutate(
     begin = as.numeric(begin),
     end = as.numeric(end),
     width = end-begin
   ) %>%
-  left_join(msa_position_map, by=c("ID", begin="Original_pos"))
+  left_join(msa_position_map, by=c("ACCESSION", begin="Original_pos"))
 ```
 
 
