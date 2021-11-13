@@ -245,10 +245,10 @@ pdf(
 plotTracks(
   list(genome_location_track, aligned_region_track),
   main=paste("Aligned protein sequence variants of", params$gene_symbol),
-  main.cex=1
+  cex.main=1
 )
 graphics.off()
-plotTracks(list(genome_location_track, aligned_region_track))
+plotTracks(list(aligned_region_track, genome_location_track))
 ```
 
 ```{r warning=FALSE, message=FALSE}
