@@ -192,28 +192,6 @@ prot_msa <- readAAStringSet(alignment_fn)
 prot_msa
 ```
 
-```{r message=FALSE, warning=FALSE}
-align_start <- 1
-align_end <- 100
-#align_start <- NULL
-#align_end <- NULL
-
-p <- ggmsa(alignment_fn, start=align_start, end=align_end, seq_name=TRUE) +
-  geom_seqlogo() +
-  geom_msaBar()
-
-print(p)
-```
-
-```{r}
-prot_msa_list %>%
-  purrr::map(function(x) gsub("-", " ", x[1:50])) %>%
-  purrr::map(paste, collapse="") %>%
-  {.[. != ""]} %>%
-  unlist() %>%
-  ggseqlogo()
-```
-
 ```{r}
 aligned_ranges <- prot_msa %>%
   as.list() %>%
