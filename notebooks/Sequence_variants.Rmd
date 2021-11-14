@@ -39,7 +39,7 @@ library(httr)
 select <- dplyr::select
 filter <- dplyr::filter
 
-for (dr in c('figure_folder', 'table_folder')){
+for (dr in c('figure_folder', 'data_folder')){
   drn <- params[[dr]]
   if(!dir.exists(drn)) dir.create(drn, recursive=TRUE)
 }
