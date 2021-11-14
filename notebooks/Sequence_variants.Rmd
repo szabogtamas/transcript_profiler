@@ -358,7 +358,7 @@ protein_features %>%
   ) %>%
   ggplot(aes(x=begin, y=description)) +
   geom_tile() +
-  facet_grid(.~ACCESSION) +
+  facet_wrap(.~ACCESSION,  ncol=1, strip.position="left") +
   theme_bw() +
   theme(
     #axis.text.x = element_text(angle=30, hjust=1),
