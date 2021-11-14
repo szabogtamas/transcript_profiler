@@ -41,11 +41,43 @@ plot_trancript_models <- function(gene, Tx, db, fig_path=NULL){
         pdf(fig_path, width=7.2, height=3.6)
         plotTracks(
             list(genome_location_track, genome_region_track),
-            main=paste("Aligned protein sequence variants of", params$gene_symbol)
+            main=paste("Aligned protein sequence variants of", gene)
         )
         graphics.off()
         }
 
     plotTracks(list(genome_location_track, genome_region_track))
+
+}
+
+
+#' Plot aligned block as pseudo-genomic ranges
+#' 
+#' @param gene string               Gene symbol to filter by
+#' @param aligned_ranges GRanges    Alignment converted into genomic ranges
+#' @param fig_path string           Path to the figure output
+#' 
+#' @return plot                     Plot showing block models for transripts
+plot_alignment_models <- function(gene, aligned_ranges, fig_path=NULL){
+    
+    genome_location_track <- GenomeAxisTrack()
+
+    aligned_region_track <- aligned_ranges %>%
+        makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
+        GeneRegionTrack(
+            name="", transcriptAnnotation="transcript",
+            background.title="white"
+        )
+    
+    if(!is.null(fig_path)){
+        pdf(fig_path, width=7.2, height=3.6)
+        plotTracks(
+            list(aligned_region_track, genome_location_track),
+            main=paste("Aligned protein sequence variants of", gene)
+        )
+        graphics.off()
+        }
+
+    plotTracks(list(aligned_region_track, genome_location_track))
 
 }
