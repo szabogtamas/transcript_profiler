@@ -28,3 +28,27 @@ align_isoforms <- function(protein_seqs, alignment_fn, return_seqs=TRUE){
     if (return_seqs) readAAStringSet(alignment_fn)
 
 }
+
+
+#' Convert the alignment of isoforms into GRanges
+#' 
+#' @param aligned_seqs AAStringSet  Aligned isoform sequences
+#' 
+#' @return GRanges                  The blocks of sequences shared between isoforms.
+convert_alignment_to_ranges <- function(aligned_seqs){
+    
+    aligned_ranges <- aligned_seqs %>%
+        as.list() %>%
+        purrr::map_dfr(
+            function(x) {
+            x %>%
+                stringr::str_locate_all('[A-Z]+') %>%
+                data.frame() %>%
+                mutate(
+                seqname = "P0",
+                strand = "+"
+                )
+            }, .id="transcript"
+        )
+
+}
