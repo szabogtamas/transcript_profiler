@@ -66,27 +66,7 @@ AnnotationHub::setAnnotationHubOption("CACHE", hub_dir)
 hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
 mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 
-uniprot_base_url <- "https://www.uniprot.org/uploadlists/"
-uniprot_api_url <- "www.ebi.ac.uk/proteins/api"
-
-options(ucscChromosomeNames = FALSE)
-
-parse_uniprot <- function(uni_acc){
-  uniprot_entry <- uni_acc %>%
-    file.path(uniprot_api_url, "proteins", .) %>%
-    GET() %>%
-    content()
-  
-  features <- uniprot_entry$features %>%
-    purrr::map_dfr(as.data.frame) %>%
-    mutate(
-      ACCESSION = uni_acc,
-      SEQ = uniprot_entry$sequence$sequence
-    )
-  if (is.null(features$description)) features$description <- NA
-  
-  select(features, ACCESSION, type, category, description, begin, end, SEQ)
-}
+source("../scripts/sequence_retrieval.R")
 ```
 
 ## Human transcripts
