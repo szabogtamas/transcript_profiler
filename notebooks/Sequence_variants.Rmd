@@ -212,15 +212,9 @@ plotTracks(list(aligned_region_track, genome_location_track))
 ### Annotated features
 
 ```{r warning=FALSE, message=FALSE}
-uniprot_id_mapping <- uniprot_base_url %>% 
-  GET(
-    query = list(
-      from = "ENSEMBL_PRO_ID", to = "ACC", format = "tab",
-      query = paste(names(protein_seqs), collapse=" ")
-    )
-  ) %>%
-  content() %>%
-  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
+uniprot_id_mapping <- protein_seqs %>%
+  names() %>%
+  map_uniprot()
 
 protein_features <- uniprot_id_mapping$To %>%
   purrr::map_dfr(parse_uniprot) %>%
