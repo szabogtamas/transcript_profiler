@@ -204,28 +204,6 @@ main_prots <- c("P04637", "E7EQX7")
 protein_features %>%
   filter(ACCESSION %in% main_prots) %>%
   plot_features_on_alignment()
-  filter(category == "PTM") %>%
-  distinct(ACCESSION, begin, end, description) %>%
-  arrange(description) %>%
-  mutate(
-    begin = as.numeric(begin),
-    end = as.numeric(end),
-    width = end-begin
-  ) %>%
-  left_join(msa_position_map, by=c("ACCESSION", begin="Original_pos")) %>%
-  mutate(
-    begin = Aligned_pos,
-    end = begin + width
-  ) %>%
-  ggplot(aes(x=begin, y=description)) +
-  geom_tile() +
-  facet_wrap(.~ACCESSION,  ncol=1, strip.position="left") +
-  theme_bw() +
-  theme(
-    #axis.text.x = element_text(angle=30, hjust=1),
-    axis.text.x = element_blank()
-  ) +
-  labs(x = "", y = "", title = paste("PTMs annotated in Uniprot for human", params$gene_symbol))
 ```
 
 
