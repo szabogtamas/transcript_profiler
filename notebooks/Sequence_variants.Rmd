@@ -68,6 +68,7 @@ mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 
 source("../scripts/sequence_retrieval.R")
 source("../scripts/alignment_blocks.R")
+source("../scripts/transcript_viz.R")
 ```
 
 ## Human transcripts
@@ -88,34 +89,11 @@ datatable(tx_df)
 ```
 
 ```{r}
-chr <- as.character(unique(seqnames(Tx)))
-region_start = min(tx_df$start)
-region_end = max(tx_df$end)
-
-genome_location_track <- GenomeAxisTrack()
-genome_region_range <- getGeneRegionTrackForGviz(
-  hsdb, chromosome=chr, start=region_start, end=region_end,
-  filter=AnnotationFilterList(
-    GeneNameFilter(params$gene_symbol),
-    GeneIdFilter("ENS", "startsWith")
-  ), featureIs="tx_biotype"
+fig_path = file.path(
+  params$figure_folder,
+  paste(params$gene_symbol, "transcripts_human.pdf", sep="_")
 )
-
-genome_region_track <- GeneRegionTrack(
-  genome_region_range, name="", transcriptAnnotation="transcript",
-  background.title="white"
-)
-
-pdf(
-  file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_human.pdf", sep="_")),
-  width=7.2, height=3.6
-)
-plotTracks(
-  list(genome_location_track, genome_region_track),
-  main=paste("Aligned protein sequence variants of", params$gene_symbol)
-)
-graphics.off()
-plotTracks(list(genome_location_track, genome_region_track))
+plot_trancript_models(params$gene_symbol, Tx, hsdb, fig_path)
 ```
 
 ### Nucleotide sequences
@@ -154,60 +132,21 @@ protein_seqs
 
 ```{r}
 alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_ensembl_human.fa", sep="_"))
-
-prot_msa_list <- protein_seqs %>%
-  msa() %>%
-  msaConvert("bios2mds::align")
-
-export.fasta(prot_msa_list, outfile=alignment_fn)
-
-alignment_fn %>%
-  readLines() %>%
-  gsub("NA$", "", .) %>%
-  writeLines(alignment_fn)
-
-#msaPrettyPrint(aligned_prots, output="pdf", showNames="none", showLogo="none", askForOverwrite=FALSE, verbose=FALSE)
-#print(aligned_prots, show="complete")
-prot_msa <- readAAStringSet(alignment_fn)
+prot_msa <- align_isoforms(protein_seqs, alignment_fn)
 
 prot_msa
 ```
 
 ```{r}
-aligned_ranges <- prot_msa %>%
-  as.list() %>%
-  purrr::map_df(
-    function(x, y) {
-      x %>%
-        stringr::str_locate_all('[A-Z]+') %>%
-        data.frame() %>%
-        mutate(
-          seqname = "P0",
-          strand = "+"
-        )
-    }, .id="transcript"
+aligned_ranges <- convert_alignment_to_ranges(prot_msa)
+
+plot_alignment_models(
+  params$gene_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ensembl_proteins_human.pdf", sep="_")
   )
-
-aligned_region_track <- aligned_ranges %>%
-  makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
-  GeneRegionTrack(
-  name="", transcriptAnnotation="transcript",
-  background.title="white"
 )
-
-genome_location_track <- GenomeAxisTrack()
-
-pdf(
-  file.path(params$figure_folder, paste(params$gene_symbol, "ensembl_proteins_human.pdf", sep="_")),
-  width=7.2, height=3.6
-)
-plotTracks(
-  list(genome_location_track, aligned_region_track),
-  main=paste("Aligned protein sequence variants of", params$gene_symbol),
-  cex.main=1
-)
-graphics.off()
-plotTracks(list(aligned_region_track, genome_location_track))
 ```
 
 ### Annotated features
@@ -250,26 +189,13 @@ prot_msa
 aligned_ranges <- convert_alignment_to_ranges(prot_msa)
 msa_position_map <- map_aligned_positions(aligned_ranges)
 
-aligned_region_track <- aligned_ranges %>%
-  makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
-  GeneRegionTrack(
-  name="", transcriptAnnotation="transcript",
-  background.title="white"
+plot_alignment_models(
+  params$gene_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "uniprot_proteins_human.pdf", sep="_")
+  )
 )
-
-genome_location_track <- GenomeAxisTrack()
-
-pdf(
-  file.path(params$figure_folder, paste(params$gene_symbol, "ensembl_proteins_human.pdf", sep="_")),
-  width=7.2, height=3.6
-)
-plotTracks(
-  list(genome_location_track, aligned_region_track),
-  main=paste("Aligned protein sequence variants of", params$gene_symbol),
-  cex.main=1
-)
-graphics.off()
-plotTracks(list(aligned_region_track, genome_location_track))
 ```
 
 ```{r}
@@ -277,6 +203,7 @@ main_prots <- c("P04637", "E7EQX7")
 
 protein_features %>%
   filter(ACCESSION %in% main_prots) %>%
+  plot_features_on_alignment()
   filter(category == "PTM") %>%
   distinct(ACCESSION, begin, end, description) %>%
   arrange(description) %>%
