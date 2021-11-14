@@ -7,8 +7,6 @@
 uniprot_base_url <- "https://www.uniprot.org/uploadlists/"
 uniprot_api_url <- "www.ebi.ac.uk/proteins/api"
 
-options(ucscChromosomeNames = FALSE)
-
 
 #' Pasrse the XML file returned by UniProt for a single entry
 #' 
