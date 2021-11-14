@@ -52,3 +52,27 @@ convert_alignment_to_ranges <- function(aligned_seqs){
         )
 
 }
+
+
+#' Convert the alignment of isoforms into GRanges
+#' 
+#' @param aligned_ranges GRanges    Blocks of amino acids as alignment ranges.
+#' 
+#' @return data.frame               Mapping between original positions and positions on alignment.
+map_aligned_positions <- function(aligned_ranges){
+
+    aligned_ranges %>%
+        dplyr::rename(ACCESSION = transcript) %>%
+        mutate(
+            Aligned_pos = purrr::map2(start, end, seq)
+        ) %>%
+        unnest(Aligned_pos) %>%
+        arrange(ACCESSION, Aligned_pos) %>%
+        group_by(ACCESSION) %>%
+        mutate(
+            Original_pos = seq(1, n())
+        ) %>%
+        ungroup() %>%
+        select(ACCESSION, Original_pos, Aligned_pos)
+
+}
