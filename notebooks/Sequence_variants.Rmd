@@ -67,6 +67,7 @@ hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
 mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 
 source("../scripts/sequence_retrieval.R")
+source("../scripts/alignment_blocks.R")
 ```
 
 ## Human transcripts
@@ -240,55 +241,14 @@ protein_seqs
 
 ```{r}
 alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
-
-prot_msa_list <- protein_seqs %>%
-  msa() %>%
-  msaConvert("bios2mds::align")
-
-export.fasta(prot_msa_list, outfile=alignment_fn)
-
-alignment_fn %>%
-  readLines() %>%
-  gsub("NA$", "", .) %>%
-  writeLines(alignment_fn)
-
-prot_msa <- readAAStringSet(alignment_fn)
+prot_msa <- align_isoforms(protein_seqs, alignment_fn)
 
 prot_msa
 ```
 
 ```{r}
-msa_position_map <- aligned_ranges %>%
-  dplyr::rename(ACCESSION = transcript) %>%
-  mutate(
-    Aligned_pos = purrr::map2(start, end, seq)
-  ) %>%
-  unnest(Aligned_pos) %>%
-  arrange(ACCESSION, Aligned_pos) %>%
-  group_by(ACCESSION) %>%
-  mutate(
-    Original_pos = seq(1, n())
-  ) %>%
-  ungroup() %>%
-  select(ACCESSION, Original_pos, Aligned_pos)
-
-msa_position_map
-```
-
-```{r}
-aligned_ranges <- prot_msa %>%
-  as.list() %>%
-  purrr::map_df(
-    function(x, y) {
-      x %>%
-        stringr::str_locate_all('[A-Z]+') %>%
-        data.frame() %>%
-        mutate(
-          seqname = "P0",
-          strand = "+"
-        )
-    }, .id="transcript"
-  )
+aligned_ranges <- convert_alignment_to_ranges(prot_msa)
+msa_position_map <- map_aligned_positions(aligned_ranges)
 
 aligned_region_track <- aligned_ranges %>%
   makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
