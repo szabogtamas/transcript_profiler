@@ -357,7 +357,14 @@ protein_features %>%
     end = begin + width
   ) %>%
   ggplot(aes(x=begin, y=description)) +
-  geom_tile()
+  geom_tile() +
+  facet_grid(.~ACCESSION) +
+  theme_bw() +
+  theme(
+    #axis.text.x = element_text(angle=30, hjust=1),
+    axis.text.x = element_blank()
+  ) +
+  labs(x = "", y = "", title = paste("PTMs annotated in Uniprot for human", params$gene_symbol))
 ```
 
 
