@@ -28,6 +28,7 @@ library(GenomicRanges)
 library(GenomicFeatures)
 library(Biostrings)
 library(Gviz)
+library(ggplot2)
 library(ggmsa)
 library(bios2mds)
 library(DT)
@@ -63,9 +64,9 @@ AnnotationHub::setAnnotationHubOption("CACHE", hub_dir)
 hs_dna <- ensembldb:::getGenomeTwoBitFile(hsdb)
 mm_dna <- ensembldb:::getGenomeTwoBitFile(mmdb)
 
-source("../scripts/sequence_retrieval.R")
-source("../scripts/alignment_blocks.R")
-source("../scripts/transcript_viz.R")
+source("../scripts/R/sequence_retrieval.R")
+source("../scripts/R/alignment_blocks.R")
+source("../scripts/R/transcript_viz.R")
 ```
 
 ## Human transcripts
@@ -92,43 +93,35 @@ fig_path = file.path(
 )
 plot_trancript_models(params$gene_symbol, Tx, hsdb, fig_path)
 ```
+Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
 ```{r}
-nt_seqs <- hsdb %>%
-  exonsBy(
-    by = "tx",
-    filter = AnnotationFilterList(
-      GeneNameFilter(params$gene_symbol),
-      GeneIdFilter("ENS", "startsWith")
-    )
-  ) %>%
-  extractTranscriptSeqs(hs_dna, .)
-
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_human.fa", sep="_")))
-
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "nt_human.fa", sep="_")
+)
+nt_seqs <- dna_seq_from_ensembl(params$gene_symbol, hsdb, hs_dna, fasta_path)
 nt_seqs
 ```
 
 ### Protein sequences
 
 ```{r}
-protein_seqs <- proteins(
-  hsdb, return.type = "AAStringSet",
-  filter = AnnotationFilterList(
-    GeneNameFilter(params$gene_symbol),
-    GeneIdFilter("ENS", "startsWith")
-  )
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_ensembl_human.fa", sep="_")
 )
-
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_human.fa", sep="_")))
-
+protein_seqs <- aa_seq_from_ensembl(params$gene_symbol, hsdb, fasta_path)
 protein_seqs
 ```
 
 ```{r}
-alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_ensembl_human.fa", sep="_"))
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol,"msa_ensembl_human.fa", sep="_")
+)
 prot_msa <- align_isoforms(protein_seqs, alignment_fn)
 
 prot_msa
@@ -149,15 +142,9 @@ plot_alignment_models(
 ### Annotated features
 
 ```{r warning=FALSE, message=FALSE}
-uniprot_id_mapping <- protein_seqs %>%
+protein_features <- protein_seqs %>%
   names() %>%
-  map_uniprot()
-
-protein_features <- uniprot_id_mapping$To %>%
-  purrr::map_dfr(parse_uniprot) %>%
-  left_join(uniprot_id_mapping, by=c(ACCESSION="To")) %>%
-  dplyr::rename(ID = From) %>%
-  distinct()
+  entries_from_uniprot()
 
 protein_features %>%
   select(-SEQ) %>%
@@ -165,26 +152,28 @@ protein_features %>%
 ```
 
 ```{r}
-protein_seqs <- protein_features %>%
-  distinct(ACCESSION, SEQ) %>%
-  {setNames(.$SEQ, .$ACCESSION)} %>%
-  AAStringSet()
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_uniprot_human.fa", sep="_")
+)
 
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_human.fa", sep="_")))
+human_up_seqs <- extract_up_seqs(protein_features, fasta_path)
 
-protein_seqs
+human_up_seqs
 ```
 
 ```{r}
-alignment_fn <- file.path(params$data_folder, paste(params$gene_symbol, "msa_human.fa", sep="_"))
-prot_msa <- align_isoforms(protein_seqs, alignment_fn)
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "msa_uniprot_human.fa", sep="_")
+)
+human_alignment <- align_isoforms(human_up_seqs, alignment_fn)
 
-prot_msa
+human_alignment
 ```
 
 ```{r}
-aligned_ranges <- convert_alignment_to_ranges(prot_msa)
-msa_position_map <- map_aligned_positions(aligned_ranges)
+aligned_ranges <- convert_alignment_to_ranges(human_alignment)
 
 plot_alignment_models(
   params$gene_symbol, aligned_ranges,
@@ -195,15 +184,35 @@ plot_alignment_models(
 )
 ```
 
-```{r}
-main_prots <- c("P04637", "E7EQX7")
-
-protein_features %>%
-  filter(ACCESSION %in% main_prots) %>%
-  plot_features_on_alignment()
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "PTM", msa_position_map, paste("human", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ptms_human.pdf", sep="_")
+  )
+)
 ```
 
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "DOMAINS_AND_SITES", msa_position_map, paste("human", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "domains_human.pdf", sep="_")
+  )
+)
+```
 
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "STRUCTURAL", msa_position_map, paste("human", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "structure_human.pdf", sep="_")
+  ), use_type=TRUE
+)
+```
 
 ## Mouse transcripts
 
@@ -211,11 +220,10 @@ protein_features %>%
 
 ```{r}
 mouse_symbol <- homologene(params$gene_symbol, inTax = 9606, outTax = 10090)$`10090`
-Tx_m <- transcripts(mmdb, filter = GeneNameFilter(mouse_symbol))
 
 Tx_m <- transcripts(
   mmdb, filter = GeneNameFilter(mouse_symbol),
-  columns = c("tx_biotype", "gene_name")#, "protein_id", "uniprot_id")
+  columns = c("tx_biotype", "gene_name")
 )
 Tx_m <- Tx_m[Tx_m$tx_biotype != "LRG_gene"]
 txm_df <- Tx_m %>%
@@ -226,81 +234,131 @@ datatable(txm_df)
 ```
 
 ```{r}
-chr <- as.character(unique(seqnames(Tx_m)))
-region_start = min(txm_df$start)
-region_end = max(txm_df$end)
-
-genome_location_track <- GenomeAxisTrack()
-genome_region_range <- getGeneRegionTrackForGviz(
-  mmdb, chromosome=chr, start=region_start, end=region_end,
-  filter=AnnotationFilterList(
-    GeneNameFilter(mouse_symbol),
-    GeneIdFilter("ENS", "startsWith")
-  ), featureIs="tx_biotype"
+fig_path = file.path(
+  params$figure_folder,
+  paste(params$gene_symbol, "transcripts_mouse.pdf", sep="_")
 )
-
-genome_region_track <- GeneRegionTrack(
-  genome_region_range, name="", transcriptAnnotation="transcript",
-  background.title="white"
-)
-
-pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_mouse.pdf", sep="_")))
-plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
-graphics.off()
-plotTracks(list(genome_location_track, genome_region_track))
+plot_trancript_models(mouse_symbol, Tx_m, mmdb, fig_path)
 ```
+Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
 ```{r}
-nt_seqs <- mmdb %>%
-  exonsBy(
-    by = "tx",
-    filter = AnnotationFilterList(
-      GeneNameFilter(mouse_symbol),
-      GeneIdFilter("ENS", "startsWith")
-    )
-  ) %>%
-  extractTranscriptSeqs(mm_dna, .)
-
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_mouse.fa", sep="_")))
-
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "nt_mouse.fa", sep="_")
+)
+nt_seqs <- dna_seq_from_ensembl(mouse_symbol, mmdb, mm_dna, fasta_path)
 nt_seqs
 ```
 
 ### Protein sequences
 
 ```{r}
-protein_seqs <- proteins(
-  mmdb, return.type = "AAStringSet",
-  filter = AnnotationFilterList(
-    GeneNameFilter(mouse_symbol),
-    GeneIdFilter("ENS", "startsWith")
-  )
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_ensembl_mouse.fa", sep="_")
 )
-
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_mouse.fa", sep="_")))
-
+protein_seqs <- aa_seq_from_ensembl(mouse_symbol, mmdb, fasta_path)
 protein_seqs
 ```
 
-```{r warning=FALSE, message=FALSE}
-uniprot_id_mapping <- uniprot_base_url %>% 
-  GET(
-    query = list(
-      from = "ENSEMBL_PRO_ID", to = "ACC", format = "tab",
-      query = paste(names(protein_seqs), collapse=" ")
-    )
-  ) %>%
-  content() %>%
-  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
+```{r}
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol,"msa_ensembl_mouse.fa", sep="_")
+)
+prot_msa <- align_isoforms(protein_seqs, alignment_fn)
 
-protein_features <- uniprot_id_mapping$To %>%
-  purrr::map_dfr(parse_uniprot)
+prot_msa
+```
+
+```{r}
+aligned_ranges <- convert_alignment_to_ranges(prot_msa)
+
+plot_alignment_models(
+  mouse_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ensembl_proteins_mouse.pdf", sep="_")
+  )
+)
+```
+
+### Annotated features
+
+```{r warning=FALSE, message=FALSE}
+protein_features <- nt_seqs %>%
+  names() %>%
+  entries_from_uniprot(id_code="ENSEMBL_TRS_ID")
 
 protein_features %>%
   select(-SEQ) %>%
   datatable()
+```
+
+```{r}
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_uniprot_mouse.fa", sep="_")
+)
+
+mouse_up_seqs <- extract_up_seqs(protein_features, fasta_path)
+
+mouse_up_seqs
+```
+
+```{r}
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "msa_uniprot_mouse.fa", sep="_")
+)
+mouse_alignment <- align_isoforms(mouse_up_seqs, alignment_fn)
+
+mouse_alignment
+```
+
+```{r}
+aligned_ranges <- convert_alignment_to_ranges(mouse_alignment)
+
+plot_alignment_models(
+  mouse_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "uniprot_proteins_mouse.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "PTM", msa_position_map, paste("mouse", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ptms_mouse.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "DOMAINS_AND_SITES", msa_position_map, paste("mouse", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "domains_mouse.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "STRUCTURAL", msa_position_map, paste("mouse", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "structure_mouse.pdf", sep="_")
+  ), use_type=TRUE
+)
 ```
 
 ## Zebrafish
@@ -308,12 +366,12 @@ protein_features %>%
 ### Transcript annotations for gene
 
 ```{r}
-danio_id <- params$gene_symbol %>%
+fish_symbol <- params$gene_symbol %>%
   homologene(inTax = 9606, outTax = 7955) %>%
   .[["7955_ID"]] %>%
   as.character()
 
-Tx_f <- transcriptsBy(drtx, "gene")[[danio_id]]
+Tx_f <- transcriptsBy(drtx, "gene")[[fish_symbol]]
 txf_df <- Tx_f %>%
   as.data.frame() %>%
   select(tx_id, tx_name, chromosome=seqnames, start, end)
@@ -321,70 +379,32 @@ txf_df <- Tx_f %>%
 datatable(txf_df)
 ```
 
-```{r warning=FALSE, message=FALSE}
-chr <- as.character(unique(seqnames(Tx_f)))
-region_start = min(txf_df$start)
-region_end = max(txf_df$end)
-
-genome_location_track <- GenomeAxisTrack()
-genome_region_range <- drtx %>%
-  exonsBy("tx", use.names=TRUE) %>%
-  .[unique(txf_df$tx_name)] %>%
-  unlist()
-elementMetadata(genome_region_range)$transcript <- names(genome_region_range)
-
-genome_region_track <- GeneRegionTrack(
-  genome_region_range, name="", transcriptAnnotation="transcript",
-  background.title="white"
+```{r}
+fig_path = file.path(
+  params$figure_folder,
+  paste(params$gene_symbol, "transcripts_fish.pdf", sep="_")
 )
-
-pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_fish.pdf", sep="_")))
-plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
-graphics.off()
-plotTracks(list(genome_location_track, genome_region_track))
+plot_trancript_models(fish_symbol, Tx_f, drdb, fig_path)
 ```
+Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
 ```{r}
-nt_seqs <- drdb %>%
-  getSeq(Tx_f) %>%
-  setNames(txf_df$tx_name)
-
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_fish.fa", sep="_")))
-
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "nt_fish.fa", sep="_")
+)
+nt_seqs <- dna_seq_from_txdb(Tx_f, drdb, fasta_path)
 nt_seqs
 ```
 
 ### Protein sequences
 
 ```{r warning=FALSE, message=FALSE}
-uniprot_id_mapping <- uniprot_base_url %>% 
-  GET(
-    query = list(
-      from = "REFSEQ_NT_ID", to = "ACC", format = "tab",
-      query = paste(txf_df$tx_name, collapse=" ")
-    )
-  ) %>%
-  content() %>%
-  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
-
-parse_uniprot <- function(uni_acc){
-  uniprot_entry <- uni_acc %>%
-    file.path(uniprot_api_url, "proteins", .) %>%
-    GET() %>%
-    content()
-  
-  uniprot_entry$features %>%
-    purrr::map_dfr(as.data.frame) %>%
-    mutate(
-      ACCESSION = uni_acc,
-      SEQ = uniprot_entry$sequence$sequence
-    )
-}
-
-protein_features <- uniprot_id_mapping$To %>%
-  purrr::map_dfr(parse_uniprot)
+protein_features <- nt_seqs %>%
+  names() %>%
+  entries_from_uniprot(id_code="ENSEMBL_TRS_ID")
 
 protein_features %>%
   select(-SEQ) %>%
@@ -392,14 +412,66 @@ protein_features %>%
 ```
 
 ```{r}
-protein_seqs <- protein_features %>%
-  distinct(ACCESSION, SEQ) %>%
-  {setNames(.$SEQ, .$ACCESSION)} %>%
-  AAStringSet(protein_seqs)
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_uniprot_fish.fa", sep="_")
+)
 
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_fish.fa", sep="_")))
+fish_up_seqs <- extract_up_seqs(protein_features, fasta_path)
 
-protein_seqs
+fish_up_seqs
+```
+
+```{r}
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "msa_uniprot_fish.fa", sep="_")
+)
+fish_alignment <- align_isoforms(fish_up_seqs, alignment_fn)
+
+fish_alignment
+```
+
+```{r}
+aligned_ranges <- convert_alignment_to_ranges(fish_alignment)
+
+plot_alignment_models(
+  fish_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "uniprot_proteins_fish.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "PTM", msa_position_map, paste("fish", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ptms_fish.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "DOMAINS_AND_SITES", msa_position_map, paste("fish", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "domains_fish.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "STRUCTURAL", msa_position_map, paste("fish", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "structure_fish.pdf", sep="_")
+  ), use_type=TRUE
+)
 ```
 
 ## Drosophila
@@ -407,12 +479,13 @@ protein_seqs
 ### Transcript annotations for gene
 
 ```{r}
-drpsi_id <- params$gene_symbol %>%
+fly_symbol <- params$gene_symbol %>%
   homologene(inTax = 9606, outTax = 7227) %>%
   .[["7227_ID"]] %>%
   as.character()
 
-Tx_d <- transcriptsBy(dmtx, "gene")[[drosi_id]]
+
+Tx_d <- transcriptsBy(dmtx, "gene")[[fly_symbol]]
 txd_df <- Tx_d %>%
   as.data.frame() %>%
   select(tx_id, tx_name, chromosome=seqnames, start, end)
@@ -420,56 +493,32 @@ txd_df <- Tx_d %>%
 datatable(txd_df)
 ```
 
-```{r warning=FALSE, message=FALSE}
-chr <- as.character(unique(seqnames(Tx_d)))
-region_start = min(txd_df$start)
-region_end = max(txd_df$end)
-
-genome_location_track <- GenomeAxisTrack()
-genome_region_range <- dmtx %>%
-  exonsBy("tx", use.names=TRUE) %>%
-  .[unique(txd_df$tx_name)] %>%
-  unlist()
-elementMetadata(genome_region_range)$transcript <- names(genome_region_range)
-
-genome_region_track <- GeneRegionTrack(
-  genome_region_range, name="", transcriptAnnotation="transcript",
-  background.title="white"
+```{r}
+fig_path = file.path(
+  params$figure_folder,
+  paste(params$gene_symbol, "transcripts_fly.pdf", sep="_")
 )
-
-pdf(file.path(params$figure_folder, paste(params$gene_symbol, "transcripts_fly.pdf", sep="_")))
-plotTracks(list(genome_location_track, genome_region_track), width=7.2, height=3.6)
-graphics.off()
-plotTracks(list(genome_location_track, genome_region_track))
+plot_trancript_models(fly_symbol, Tx_d, dmdb, fig_path)
 ```
+Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
 ```{r}
-nt_seqs <- dmdb %>%
-  getSeq(Tx_d) %>%
-  setNames(txd_df$tx_name)
-
-writeXStringSet(nt_seqs, file.path(params$data_folder, paste(params$gene_symbol, "nt_fly.fa", sep="_")))
-
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "nt_fly.fa", sep="_")
+)
+nt_seqs <- dna_seq_from_txdb(Tx_d, dmdb, fasta_path)
 nt_seqs
 ```
 
 ### Protein sequences
 
 ```{r warning=FALSE, message=FALSE}
-uniprot_id_mapping <- uniprot_base_url %>% 
-  GET(
-    query = list(
-      from = "REFSEQ_NT_ID", to = "ACC", format = "tab",
-      query = paste(txf_df$tx_name, collapse=" ")
-    )
-  ) %>%
-  content() %>%
-  read.csv(text=., sep="\t", stringsAsFactors=FALSE)
-
-protein_features <- uniprot_id_mapping$To %>%
-  purrr::map_dfr(parse_uniprot)
+protein_features <- nt_seqs %>%
+  names() %>%
+  entries_from_uniprot(id_code="ENSEMBL_TRS_ID")
 
 protein_features %>%
   select(-SEQ) %>%
@@ -477,12 +526,64 @@ protein_features %>%
 ```
 
 ```{r}
-protein_seqs <- protein_features %>%
-  distinct(ACCESSION, SEQ) %>%
-  {setNames(.$SEQ, .$ACCESSION)} %>%
-  AAStringSet(protein_seqs)
+fasta_path = file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "aa_uniprot_fly.fa", sep="_")
+)
 
-writeXStringSet(protein_seqs, file.path(params$data_folder, paste(params$gene_symbol, "aa_fish.fa", sep="_")))
+fly_up_seqs <- extract_up_seqs(protein_features, fasta_path)
 
-protein_seqs
+fly_up_seqs
+```
+
+```{r}
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "msa_uniprot_fly.fa", sep="_")
+)
+fly_alignment <- align_isoforms(fly_up_seqs, alignment_fn)
+
+fly_alignment
+```
+
+```{r}
+aligned_ranges <- convert_alignment_to_ranges(flyh_alignment)
+
+plot_alignment_models(
+  fly_symbol, aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "uniprot_proteins_fly.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "PTM", msa_position_map, paste("fly", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "ptms_fly.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "DOMAINS_AND_SITES", msa_position_map, paste("fly", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "domains_fly.pdf", sep="_")
+  )
+)
+```
+
+```{r message=FALSE, warning=FALSE}
+plot_features_on_alignment(
+  protein_features, "STRUCTURAL", msa_position_map, paste("fly", params$gene_symbol), 
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "structure_fly.pdf", sep="_")
+  ), use_type=TRUE
+)
 ```
