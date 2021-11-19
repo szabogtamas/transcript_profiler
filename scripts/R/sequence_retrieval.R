@@ -28,7 +28,15 @@ parse_uniprot <- function(uni_acc, uniprot_api_url){
     )
   if (is.null(features$description)) features$description <- NA
   
-  select(features, ACCESSION, type, category, description, begin, end, SEQ)
+  if(nrow(features) < 1) {
+    data.frame(
+      features=c(), ACCESSION=c(), type=c(), category=c(), description=c(),
+      begin=c(), end=c(), SEQ=c()
+    )
+  } else {
+    select(features, ACCESSION, type, category, description, begin, end, SEQ)
+  }
+  
 }
 
 
@@ -138,4 +146,3 @@ aa_seq_from_ensembl <- function(gene, db, fasta_path=NULL){
   protein_seqs
   
 }
-
