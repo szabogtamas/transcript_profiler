@@ -146,3 +146,21 @@ aa_seq_from_ensembl <- function(gene, db, fasta_path=NULL){
   protein_seqs
   
 }
+
+
+#' Extract nucleotide sequences from a TwoBit genome file
+#' @param Tx GRanges                Transcriptome as ranges
+#' @param db TxDB                   A species-specific genome db
+#' @param fasta_path string         Path to the FASTA output
+#' 
+#' @return DNAStringSet             Nucleotide sequences of given transcripts.
+dna_seq_from_txdb <- function(Tx, db, fasta_path=NULL){
+  nt_seqs <- db %>%
+    getSeq(Tx) %>%
+    setNames(Tx$tx_name)
+  
+  if(!is.null(fasta_path)) writeXStringSet(nt_seqs, fasta_path)
+  
+  nt_seqs
+  
+}
