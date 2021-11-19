@@ -23,29 +23,49 @@ plot_trancript_models <- function(gene, Tx, db, fig_path=NULL){
     chr <- as.character(unique(seqnames(Tx)))
     region_start = min(start(Tx))
     region_end = max(end(Tx))
-    
-    tx_feat <- Tx %>%
-        as.data.frame() %>%
-        select(tx_biotype)
 
     genome_location_track <- GenomeAxisTrack()
-
-    genome_region_track <- db %>%
-        getGeneRegionTrackForGviz(
-            chromosome=chr, start=region_start, end=region_end,
-            featureIs="tx_biotype",
-            filter=AnnotationFilterList(
-                GeneNameFilter(gene),
-                GeneIdFilter("ENS", "startsWith")
-            )
-        ) %>%
-        GeneRegionTrack(
-            ., name="", transcriptAnnotation="transcript", background.title="white",
-            #fill=color_names[as.numeric(factor(.$feature))],
-            #fill=color_names[as.numeric(factor(tx_feat[.$transcript,]))],
-            utr=color_names[1], utr3=color_names[1], utr5=color_names[1],
-            nonsense_mediated_decay=color_names[2], protein_coding=color_names[3]
+    
+    if (class(db) == "TxDb") {
+        
+        Tx_df <- Tx %>%
+            .$tx_name %>%
+            setNames(., .) %>%
+            purrr::map(function(x) exons(db, filter=list(tx_name=x))) %>% 
+            GRangesList() %>%
+            data.frame() %>%
+            .[,c("seqnames","start","end","strand","group_name")]
+        
+        colnames(Tx_df)[1] <- "chromosome"
+        colnames(Tx_df)[5] <- "transcript"
+        
+        genome_region_track <- GeneRegionTrack(
+            Tx_df, name="", transcriptAnnotation="transcript", background.title="white"
         )
+    } else {
+        
+        tx_feat <- Tx %>%
+            as.data.frame() %>%
+            select(tx_biotype)
+        
+        genome_region_track <- db %>%
+            getGeneRegionTrackForGviz(
+                chromosome=chr, start=region_start, end=region_end,
+                featureIs="tx_biotype",
+                filter=AnnotationFilterList(
+                    GeneNameFilter(gene),
+                    GeneIdFilter("ENS", "startsWith")
+                )
+            ) %>%
+            GeneRegionTrack(
+                ., name="", transcriptAnnotation="transcript", background.title="white",
+                #fill=color_names[as.numeric(factor(.$feature))],
+                #fill=color_names[as.numeric(factor(tx_feat[.$transcript,]))],
+                utr=color_names[1], utr3=color_names[1], utr5=color_names[1],
+                nonsense_mediated_decay=color_names[2], protein_coding=color_names[3]
+            )
+    }
+    
     
     if(!is.null(fig_path)){
         pdf(fig_path, width=7.2, height=3.6)
@@ -66,18 +86,30 @@ plot_trancript_models <- function(gene, Tx, db, fig_path=NULL){
 #' @param gene string               Gene symbol to filter by
 #' @param aligned_ranges GRanges    Alignment converted into genomic ranges
 #' @param fig_path string           Path to the figure output
+#' @param show_group boolean        If groups should be folored by feature
 #' 
 #' @return plot                     Plot showing block models for isoforms
-plot_alignment_models <- function(gene, aligned_ranges, fig_path=NULL){
+plot_alignment_models <- function(gene, aligned_ranges, fig_path=NULL, show_group=FALSE){
     
     genome_location_track <- GenomeAxisTrack()
-
-    aligned_region_track <- aligned_ranges %>%
-        makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
-        GeneRegionTrack(
-            name="", transcriptAnnotation="transcript",
-            background.title="white"
-        )
+    
+    if (show_group) {
+        aligned_region_track <- aligned_ranges %>%
+            GeneRegionTrack(
+                name="", transcriptAnnotation="transcript",
+                background.title="white", Human=color_names[1], Mouse=color_names[2],
+                Fish=color_names[3], Fly=color_names[4]
+            )
+    } else {
+        aligned_region_track <- aligned_ranges %>%
+            makeGRangesFromDataFrame(keep.extra.columns=TRUE) %>%
+            GeneRegionTrack(
+                name="", transcriptAnnotation="transcript",
+                background.title="white"
+            )
+    }
+    
+   
     
     if(!is.null(fig_path)){
         pdf(fig_path, width=7.2, height=3.6)
@@ -107,6 +139,8 @@ plot_features_on_alignment <- function(protein_features, category_code, msa_posi
     
     if (use_type) protein_features$description <- protein_features$type
     
+    if (nrow(filter(protein_features, category == category_code)) < 1) return()
+    
     p <- protein_features %>%
         filter(category == category_code) %>%
         distinct(ACCESSION, begin, end, description) %>%
@@ -120,7 +154,7 @@ plot_features_on_alignment <- function(protein_features, category_code, msa_posi
         geom_tile() +
         facet_grid(ACCESSION~., scales="free_y", space="free_y") +
         expand_limits(y = c(1, 4)) +
-        xlim(1, NULL) +
+        xlim(1, NA) +
         theme_bw() +
         theme(
             #axis.text.x = element_text(angle=30, hjust=1),
