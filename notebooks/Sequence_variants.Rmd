@@ -8,7 +8,8 @@ output:
     code_folding: hide
 params:
   gene_symbol: "TP53"
-  report_title: "Transciprts of `r params$gene_symbol`"
+  fly_symbol: "FBgn0039044"
+  report_title: "Transcripts of `r params$gene_symbol`"
   report_author: "Tamas Szabo"
   report_time: !r format(Sys.Date(), format="%d/%m/%Y")
   figure_folder: "../figures"
@@ -174,6 +175,7 @@ human_alignment
 
 ```{r}
 aligned_ranges <- convert_alignment_to_ranges(human_alignment)
+msa_position_map <- map_aligned_positions(aligned_ranges)
 
 plot_alignment_models(
   params$gene_symbol, aligned_ranges,
@@ -255,39 +257,6 @@ nt_seqs
 
 ### Protein sequences
 
-```{r}
-fasta_path = file.path(
-  params$data_folder,
-  paste(params$gene_symbol, "aa_ensembl_mouse.fa", sep="_")
-)
-protein_seqs <- aa_seq_from_ensembl(mouse_symbol, mmdb, fasta_path)
-protein_seqs
-```
-
-```{r}
-alignment_fn <- file.path(
-  params$data_folder,
-  paste(params$gene_symbol,"msa_ensembl_mouse.fa", sep="_")
-)
-prot_msa <- align_isoforms(protein_seqs, alignment_fn)
-
-prot_msa
-```
-
-```{r}
-aligned_ranges <- convert_alignment_to_ranges(prot_msa)
-
-plot_alignment_models(
-  mouse_symbol, aligned_ranges,
-  file.path(
-    params$figure_folder,
-    paste(params$gene_symbol, "ensembl_proteins_mouse.pdf", sep="_")
-  )
-)
-```
-
-### Annotated features
-
 ```{r warning=FALSE, message=FALSE}
 protein_features <- nt_seqs %>%
   names() %>%
@@ -321,6 +290,7 @@ mouse_alignment
 
 ```{r}
 aligned_ranges <- convert_alignment_to_ranges(mouse_alignment)
+msa_position_map <- map_aligned_positions(aligned_ranges)
 
 plot_alignment_models(
   mouse_symbol, aligned_ranges,
@@ -384,9 +354,8 @@ fig_path = file.path(
   params$figure_folder,
   paste(params$gene_symbol, "transcripts_fish.pdf", sep="_")
 )
-plot_trancript_models(fish_symbol, Tx_f, drdb, fig_path)
+plot_trancript_models(fish_symbol, Tx_f, drtx, fig_path)
 ```
-Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
@@ -404,7 +373,7 @@ nt_seqs
 ```{r warning=FALSE, message=FALSE}
 protein_features <- nt_seqs %>%
   names() %>%
-  entries_from_uniprot(id_code="ENSEMBL_TRS_ID")
+  entries_from_uniprot(id_code="REFSEQ_NT_ID")
 
 protein_features %>%
   select(-SEQ) %>%
@@ -434,6 +403,7 @@ fish_alignment
 
 ```{r}
 aligned_ranges <- convert_alignment_to_ranges(fish_alignment)
+msa_position_map <- map_aligned_positions(aligned_ranges)
 
 plot_alignment_models(
   fish_symbol, aligned_ranges,
@@ -479,11 +449,8 @@ plot_features_on_alignment(
 ### Transcript annotations for gene
 
 ```{r}
-fly_symbol <- params$gene_symbol %>%
-  homologene(inTax = 9606, outTax = 7227) %>%
-  .[["7227_ID"]] %>%
-  as.character()
-
+# Mapping of this ID needs to be automated; using hardcoded value for now !!!
+fly_symbol <- params$fly_symbol
 
 Tx_d <- transcriptsBy(dmtx, "gene")[[fly_symbol]]
 txd_df <- Tx_d %>%
@@ -498,9 +465,8 @@ fig_path = file.path(
   params$figure_folder,
   paste(params$gene_symbol, "transcripts_fly.pdf", sep="_")
 )
-plot_trancript_models(fly_symbol, Tx_d, dmdb, fig_path)
+plot_trancript_models(fly_symbol, Tx_d, dmtx, fig_path)
 ```
-Red regions are annotated as UTR, green as protein coding and blue as nonsense-mediated decay.
 
 ### Nucleotide sequences
 
@@ -516,9 +482,8 @@ nt_seqs
 ### Protein sequences
 
 ```{r warning=FALSE, message=FALSE}
-protein_features <- nt_seqs %>%
-  names() %>%
-  entries_from_uniprot(id_code="ENSEMBL_TRS_ID")
+protein_features <- fly_symbol %>%
+  entries_from_uniprot(id_code="FLYBASE_ID")
 
 protein_features %>%
   select(-SEQ) %>%
@@ -547,7 +512,8 @@ fly_alignment
 ```
 
 ```{r}
-aligned_ranges <- convert_alignment_to_ranges(flyh_alignment)
+aligned_ranges <- convert_alignment_to_ranges(fly_alignment)
+msa_position_map <- map_aligned_positions(aligned_ranges)
 
 plot_alignment_models(
   fly_symbol, aligned_ranges,
