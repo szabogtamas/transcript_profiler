@@ -573,4 +573,21 @@ alignment_fn <- file.path(
   paste(params$gene_symbol, "msa_uniprot_merged.fa", sep="_")
 )
 merged_alignment <- align_isoforms(seq_collection, alignment_fn)
+
+aligned_ranges <- merged_alignment %>%
+  convert_alignment_to_ranges() %>%
+  data.frame() %>%
+  left_join(seq_groups, by="transcript")
+
+msa_position_map <- map_aligned_positions(aligned_ranges)
+
+plot_alignment_models(
+  "Multi-species", aligned_ranges,
+  file.path(
+    params$figure_folder,
+    paste(params$gene_symbol, "uniprot_proteins_aligned.pdf", sep="_")
+  ),
+  show_group=TRUE
+)
 ```
+Red is human, light blue is mouse, green is danio rerio, purple drosophila
