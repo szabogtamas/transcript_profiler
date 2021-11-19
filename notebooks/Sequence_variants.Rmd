@@ -553,3 +553,24 @@ plot_features_on_alignment(
   ), use_type=TRUE
 )
 ```
+
+## Inter-species comparison
+
+### Aligned domains
+
+```{r warning=FALSE, message=FALSE}
+seq_collection = c(human_up_seqs, mouse_up_seqs, fish_up_seqs, fly_up_seqs)
+
+seq_groups <- bind_rows(
+  data.frame(transcript=names(human_up_seqs), feature="Human", stringsAsFactors=FALSE),
+  data.frame(transcript=names(mouse_up_seqs), feature="Mouse", stringsAsFactors=FALSE),
+  data.frame(transcript=names(fish_up_seqs), feature="Fish", stringsAsFactors=FALSE),
+  data.frame(transcript=names(fly_up_seqs), feature="Fly", stringsAsFactors=FALSE)
+)
+
+alignment_fn <- file.path(
+  params$data_folder,
+  paste(params$gene_symbol, "msa_uniprot_merged.fa", sep="_")
+)
+merged_alignment <- align_isoforms(seq_collection, alignment_fn)
+```
