@@ -41,8 +41,8 @@ RUN R -e "BiocManager::install('BSgenome.Hsapiens.UCSC.hg19')"
 RUN R -e "BiocManager::install('BSgenome.Mmusculus.UCSC.mm10')"
 RUN R -e "BiocManager::install('BSgenome.Dmelanogaster.UCSC.dm6')"
 RUN R -e "BiocManager::install('TxDb.Dmelanogaster.UCSC.dm6.ensGene')"
-RUN R -e "BiocManager::install('BSgenome.Drerio.UCSC.danRer11')"
-RUN R -e "BiocManager::install('TxDb.Drerio.UCSC.danRer11.refGene')"
+RUN R -e "BiocManager::install('BSgenome.Drerio.UCSC.danRer10')"
+RUN R -e "BiocManager::install('TxDb.Drerio.UCSC.danRer10.refGene')"
 RUN R -e "BiocManager::install('ensembldb')"
 RUN R -e "BiocManager::install('TFBSTools')"
 #RUN R -e "BiocManager::install('Gviz')"
@@ -89,5 +89,7 @@ RUN mkdir -p /home/rstudio/data/TwoBit && \
   R -e "library(EnsDb.Hsapiens.v86); library(EnsDb.Mmusculus.v79); AnnotationHub::setAnnotationHubOption('CACHE', '/home/rstudio/data/TwoBit'); ensembldb:::getGenomeTwoBitFile(EnsDb.Hsapiens.v86); ensembldb:::getGenomeTwoBitFile(EnsDb.Mmusculus.v79)"
 
 RUN chmod a+rwx -R /home/rstudio
+RUN mkdir -p /scratch && \
+  sudo chmod -R 777 /scratch/
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
