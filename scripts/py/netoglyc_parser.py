@@ -14,7 +14,8 @@ def parse_netoglyc(fn):
     f = open(fn, "r")
     entries = f.read()
     f.close()
+    header = "Name                         S/T   Pos  G-score I-score Y/N  Comment"
     tabular = re.findall(r'(?<=\n)[A-Za-z0-9]+\s+[ST]\s+.*(?=\n)', entries)
-    tmp_data = StringIO("\n".join(tabular))
+    tmp_data = StringIO("\n".join([header] + tabular))
     df = pd.read_fwf(tmp_data)
     return df
