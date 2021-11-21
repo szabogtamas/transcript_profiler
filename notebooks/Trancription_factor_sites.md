@@ -64,3 +64,7 @@ tmp_data = StringIO("\n".join(sites))
 df = pd.read_csv(tmp_data, sep="\t", names=["start", "end", "TF", "score", "strand"])
 df.head()
 ```
+
+```python
+bb.close()
+```
