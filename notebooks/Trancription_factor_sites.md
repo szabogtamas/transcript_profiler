@@ -44,3 +44,7 @@ human_bigbed = "http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2022/JAS
 ```python
 bb = pyBigWig.open(human_bigbed)
 ```
+
+```python
+gene_features = ensembl_rest.symbol_lookup(species="homo sapiens", symbol=gene_symbol)
+```
