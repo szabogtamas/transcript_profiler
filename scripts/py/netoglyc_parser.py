@@ -19,3 +19,7 @@ def parse_netoglyc(fn):
     tmp_data = StringIO("\n".join([header] + tabular))
     df = pd.read_fwf(tmp_data)
     return df
+
+if __name__ == "__main__":
+    df = parse_netoglyc(args.input_file)
+    df.to_csv(args.output_file)
