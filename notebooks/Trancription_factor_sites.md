@@ -68,3 +68,12 @@ df.head()
 ```python
 bb.close()
 ```
+
+## Show top Transcription Factors
+
+```python
+df2 = df.loc[df["strand"] == "+", ["start", "TF", "score"]].pivot_table(index="start", columns="TF", values="score")
+top_factors = df2.max().sort_values().tail(25)
+df2 = df2.loc[:, top_factors.index].dropna(how="all")
+df2
+```
