@@ -48,3 +48,19 @@ bb = pyBigWig.open(human_bigbed)
 ```python
 gene_features = ensembl_rest.symbol_lookup(species="homo sapiens", symbol=gene_symbol)
 ```
+
+```python
+if gene_features["strand"] < 1:
+    reg_start = gene_features["end"] - 500
+else:
+    reg_start = gene_features["start"] - 5500
+reg_end = reg_start + 6000    
+```
+
+```python
+#sites = ["{}\t{}\t{}".format(*x) for x in bb.entries("chr17", 7661779, 7687538)]
+sites = ["{}\t{}\t{}".format(*x) for x in bb.entries("chr"+gene_features["seq_region_name"], reg_start, reg_end)]
+tmp_data = StringIO("\n".join(sites))
+df = pd.read_csv(tmp_data, sep="\t", names=["start", "end", "TF", "score", "strand"])
+df.head()
+```
