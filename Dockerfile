@@ -92,4 +92,6 @@ RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
   sudo chmod -R 777 /scratch/
 
+RUN pip3 install ensembl_rest
+
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
