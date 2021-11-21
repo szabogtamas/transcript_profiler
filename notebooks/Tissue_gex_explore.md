@@ -77,3 +77,39 @@ genePrc = geneSym + "_perc"
 pheno = pheno.merge(df.loc[geneEns], left_on="Sample", right_index=True)
 pheno[genePrc] = pheno[geneEns]
 ```
+
+```python
+tissue_order = [
+    'Brain',
+    'Nerve',
+    'Pituitary',
+    'Blood',
+    'Bone Marrow',
+    'Spleen',
+    'Adrenal Gland',
+    'Kidney',
+    'Fallopian Tube',
+    'Bladder',
+    'Prostate',
+    'Testis',
+    'Ovary',
+    'Uterus',
+    'Cervix Uteri',
+    'Vagina',
+    'Breast',
+    'Skin',
+    'Adipose Tissue',
+    'Muscle',
+    'Blood Vessel',
+    'Heart',
+    'Thyroid',
+    'Lung',
+    'Esophagus',
+    'Stomach',
+    'Colon',
+    'Small Intestine',
+    'Salivary Gland',
+    'Pancreas',
+    'Liver'
+]
+```
