@@ -77,3 +77,23 @@ top_factors = df2.max().sort_values().tail(25)
 df2 = df2.loc[:, top_factors.index].dropna(how="all")
 df2
 ```
+
+```python
+fontsizes = {"SMALL_SIZE": 6, "MEDIUM_SIZE": 8, "BIGGER_SIZE": 10}
+default_style = {
+    "figure.titlesize": fontsizes["BIGGER_SIZE"],
+    "axes.titlesize": fontsizes["MEDIUM_SIZE"],
+    "axes.labelsize": fontsizes["SMALL_SIZE"],
+    "xtick.labelsize": fontsizes["SMALL_SIZE"],
+    "ytick.labelsize": fontsizes["SMALL_SIZE"],
+    "legend.fontsize": fontsizes["MEDIUM_SIZE"],
+    "font.size": fontsizes["SMALL_SIZE"],
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "legend.frameon": False,
+    "savefig.transparent": True,
+    "figure.figsize": (4.8, 7.2),
+    "figure.dpi": 300,
+}
+plt.rcParams.update(default_style)
+```
