@@ -97,3 +97,16 @@ default_style = {
 }
 plt.rcParams.update(default_style)
 ```
+
+```python
+fig, ax = plt.subplots()
+
+sns.heatmap(df2.T, cmap="viridis", ax=ax)
+ax.set_xlabel("")
+ax.set_ylabel("")
+ax.set_title("Binding sites of top " + gene_symbol + " transcription factors")
+```
+
+```python
+fig.savefig("binding_sites.pdf")
+```
