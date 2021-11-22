@@ -49,3 +49,12 @@ for (fasta_file in input_proteins){
     system()
 }
 ```
+
+```{r}
+system(
+  paste(
+    "sed '/^#/ d' <", file.path(params$data_folder, "netphos.gff"), ">",
+    file.path(params$data_folder, "netphos.txt")
+  )
+)
+```
