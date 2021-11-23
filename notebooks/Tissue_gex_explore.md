@@ -113,3 +113,24 @@ tissue_order = [
     'Liver'
 ]
 ```
+
+```python
+### Visualize gex percentiles
+
+fig, ax = plt.subplots(figsize = (9.6, 3.2))
+fig.subplots_adjust(wspace=0.5, hspace=0.8)
+fig.suptitle(geneSym + " expression in tissues according to GTEX")
+
+ax = sns.boxplot(x="Tissue", y=genePrc, hue="Neural", order=tissue_order, color = "w", fliersize=0.5, data=pheno, dodge=False, ax = ax)
+ax = sns.stripplot(x="Tissue", y=genePrc, hue="Neural", order=tissue_order, data=pheno, size=2, dodge=False, ax = ax)
+
+ax.set_xticklabels(
+    [item.get_text() for item in ax.get_xticklabels()], rotation=30, ha="right"
+)
+ax.set_ylim(0, 1)
+ax.set_ylabel("Gex (Percentile rank)")
+plt.setp(ax.artists, edgecolor="k", facecolor="w")
+plt.setp(ax.lines, color="k")
+plt.tight_layout()
+ax.legend_.remove()
+```
