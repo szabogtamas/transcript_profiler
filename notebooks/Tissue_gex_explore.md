@@ -35,6 +35,14 @@ import xenaPython as xena
 ```
 
 ```python
+!pip install tspex
+```
+
+```python
+import tspex
+```
+
+```python
 ### Specify paths to GTEX data
 
 xena_hub = "https://toil.xenahubs.net"
@@ -57,7 +65,7 @@ pheno.head()
 ```python
 ### Download gene expression as FPKM
 
-geneSym, geneEns = "TP53", "ENSG00000141510.18"
+geneSym, geneEns = "TP53", "ENSG00000141510.15"
 samples = pheno["Sample"].tolist()
 # samples = xena.dataset_samples(xena_hub, gex_data, None)
 mat = xena.dataset_gene_probe_avg(xena_hub, gex_data, samples, [geneSym])
@@ -85,11 +93,29 @@ gex_matrix_file = "work/" + gex_data + ".tsv"
 df = pd.read_csv(gex_matrix_file, sep = "\t")
 df = df.set_index("sample")
 df = df.loc[df.median(axis=1) > 2,:]
-df = df.transform(lambda x: x.rank(pct=True))
+perc_mat = df.transform(lambda x: x.rank(pct=True))
 genePrc = geneSym + "_perc"
 pheno = pheno.merge(df.loc[geneEns], left_on="Sample", right_index=True)
 pheno[genePrc] = pheno[geneEns]
 pheno.head()
+```
+
+```python
+tso = tspex.TissueSpecificity(expression_data, 'tau', log=True)
+tso.tissue_specificity.head()
+```
+
+```python
+tso = tspex.TissueSpecificity(expression_data, 'spm', log=True)
+tso.tissue_specificity.head()
+```
+
+```python
+
+```
+
+```python
+
 ```
 
 ```python
