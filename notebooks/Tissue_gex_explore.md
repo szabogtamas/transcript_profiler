@@ -27,6 +27,14 @@ import pandas as pd
 ```
 
 ```python
+!pip install xenaPython
+```
+
+```python
+import xenaPython as xena
+```
+
+```python
 ### Specify paths to GTEX data
 
 xena_hub = "https://toil.xenahubs.net"
@@ -49,10 +57,13 @@ pheno.head()
 ```python
 ### Download gene expression as FPKM
 
-geneSym, geneEns = piddSym, piddEns
+geneSym, geneEns = "TP53", "ENSG00000141510.18"
 samples = pheno["Sample"].tolist()
 # samples = xena.dataset_samples(xena_hub, gex_data, None)
 mat = xena.dataset_gene_probe_avg(xena_hub, gex_data, samples, [geneSym])
+```
+
+```python
 fpkm = mat[0]["scores"][0]
 pheno[geneSym] = fpkm
 pheno[geneSym] = pheno[geneSym].astype(float)
@@ -62,13 +73,15 @@ pheno.head()
 ```
 
 ```python
-### Check percentiles for PIDD1
+### Check percentiles
 
 gex_matrix_file = "work/" + gex_data + ".tsv"
 
 !wget -P work/ {xena_hub}/download/{gex_data}.gz
 !gunzip -c work/{gex_data}.gz > {gex_matrix_file}
+```
 
+```python
 df = pd.read_csv(gex_matrix_file, sep = "\t")
 df = df.set_index("sample")
 df = df.loc[df.median(axis=1) > 2,:]
@@ -76,6 +89,7 @@ df = df.transform(lambda x: x.rank(pct=True))
 genePrc = geneSym + "_perc"
 pheno = pheno.merge(df.loc[geneEns], left_on="Sample", right_index=True)
 pheno[genePrc] = pheno[geneEns]
+pheno.head()
 ```
 
 ```python
