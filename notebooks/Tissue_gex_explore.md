@@ -24,6 +24,7 @@ from matplotlib import pyplot as plt
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 ```
 
 ```python
@@ -90,32 +91,32 @@ gex_matrix_file = "work/" + gex_data + ".tsv"
 ```
 
 ```python
-df = pd.read_csv(gex_matrix_file, sep = "\t")
-df = df.set_index("sample")
-df = df.loc[df.median(axis=1) > 2,:]
-perc_mat = df.transform(lambda x: x.rank(pct=True))
-genePrc = geneSym + "_perc"
-pheno = pheno.merge(df.loc[geneEns], left_on="Sample", right_index=True)
-pheno[genePrc] = pheno[geneEns]
+pheno = pd.read_csv("work/"+phenotype_data+".txt", sep="\t")
 pheno.head()
 ```
 
 ```python
-tso = tspex.TissueSpecificity(expression_data, 'tau', log=True)
-tso.tissue_specificity.head()
+df = pd.read_csv(gex_matrix_file, sep = "\t")
+df = df.set_index("sample")
+df = df.loc[df.median(axis=1) > 2,:]
+perc_mat = df.transform(lambda x: x.rank(pct=True))
+perc_mat.head()
 ```
 
 ```python
-tso = tspex.TissueSpecificity(expression_data, 'spm', log=True)
-tso.tissue_specificity.head()
+sample_meta_d = pheno.loc[:,["Sample", "_primary_site"]].set_index("Sample").to_dict()["_primary_site"]
+gex_matrix = df.T.reset_index()
+gex_matrix["Tissue"] = gex_matrix["index"].map(sample_meta_d)
+gex_matrix = gex_matrix.drop(columns=["index"])
+gex_matrix = gex_matrix.groupby("Tissue").mean().T + 10
+gex_matrix
 ```
 
 ```python
-
-```
-
-```python
-
+genePrc = geneSym + "_perc"
+pheno = pheno.merge(perc_mat.loc[geneEns], left_on="Sample", right_index=True)
+pheno[genePrc] = pheno[geneEns]
+pheno.head()
 ```
 
 ```python
@@ -161,8 +162,8 @@ fig, ax = plt.subplots(figsize = (9.6, 3.2))
 fig.subplots_adjust(wspace=0.5, hspace=0.8)
 fig.suptitle(geneSym + " expression in tissues according to GTEX")
 
-ax = sns.boxplot(x="Tissue", y=genePrc, hue="Neural", order=tissue_order, color = "w", fliersize=0.5, data=pheno, dodge=False, ax = ax)
-ax = sns.stripplot(x="Tissue", y=genePrc, hue="Neural", order=tissue_order, data=pheno, size=2, dodge=False, ax = ax)
+ax = sns.boxplot(x="_primary_site", y=genePrc, order=tissue_order, color = "w", fliersize=0.5, data=pheno, dodge=False, ax = ax)
+ax = sns.stripplot(x="_primary_site", y=genePrc, order=tissue_order, data=pheno, size=2, dodge=False, ax = ax)
 
 ax.set_xticklabels(
     [item.get_text() for item in ax.get_xticklabels()], rotation=30, ha="right"
@@ -172,5 +173,22 @@ ax.set_ylabel("Gex (Percentile rank)")
 plt.setp(ax.artists, edgecolor="k", facecolor="w")
 plt.setp(ax.lines, color="k")
 plt.tight_layout()
-ax.legend_.remove()
+```
+
+```python
+tso = tspex.TissueSpecificity(gex_matrix, 'tau')
+tso.tissue_specificity.head()
+```
+
+```python
+tso = tspex.TissueSpecificity(gex_matrix, 'spm')
+tso.tissue_specificity.head()
+```
+
+```python
+sns.barplot(x="Tissue", y=geneEns, data=tso.tissue_specificity.loc[geneEns].to_frame().reset_index(), order=tissue_order)
+```
+
+```python
+
 ```
