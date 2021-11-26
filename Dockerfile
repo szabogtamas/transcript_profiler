@@ -93,5 +93,6 @@ RUN mkdir -p /scratch && \
   sudo chmod -R 777 /scratch/
 
 RUN pip3 install ensembl_rest
+RUN pip3 install tspex
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
