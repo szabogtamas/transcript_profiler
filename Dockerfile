@@ -88,6 +88,11 @@ ADD ./third_party/JASPAR /usr/local/lib/third_party/JASPAR
 RUN mkdir -p /home/rstudio/data/TwoBit && \
   R -e "library(EnsDb.Hsapiens.v86); library(EnsDb.Mmusculus.v79); AnnotationHub::setAnnotationHubOption('CACHE', '/home/rstudio/data/TwoBit'); ensembldb:::getGenomeTwoBitFile(EnsDb.Hsapiens.v86); ensembldb:::getGenomeTwoBitFile(EnsDb.Mmusculus.v79)"
 
+RUN mkdir -p /home/rstudio/data/GTEx && \
+  wget -P /home/rstudio/data/GTEx/ https://toil.xenahubs.net/download/GTEX_phenotype.gz && \
+  gunzip -c /home/rstudio/data/GTEx/GTEX_phenotype.gz > /home/rstudio/data/GTEx/GTEX_phenotype.txt &&\
+  rm /home/rstudio/data/GTEx/GTEX_phenotype.gz
+
 RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
   sudo chmod -R 777 /scratch/
