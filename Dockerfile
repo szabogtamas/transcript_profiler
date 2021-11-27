@@ -84,7 +84,10 @@ RUN mkdir -p /home/rstudio/data/TwoBit && \
 RUN mkdir -p /home/rstudio/data/GTEx && \
   wget -P /home/rstudio/data/GTEx/ https://toil.xenahubs.net/download/GTEX_phenotype.gz && \
   gunzip -c /home/rstudio/data/GTEx/GTEX_phenotype.gz > /home/rstudio/data/GTEx/GTEX_phenotype.txt &&\
-  rm /home/rstudio/data/GTEx/GTEX_phenotype.gz
+  rm /home/rstudio/data/GTEx/GTEX_phenotype.gz && \
+  wget -P /home/rstudio/data/GTEx/ https://toil.xenahubs.net/download/gtex_RSEM_gene_fpkm.gz && \
+  gunzip -c /home/rstudio/data/GTEx/gtex_RSEM_gene_fpkm.gz > /home/rstudio/data/GTEx/gtex_RSEM_gene_fpkm.txt &&\
+  rm /home/rstudio/data/GTEx/gtex_RSEM_gene_fpkm.gz
 
 RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
