@@ -16,7 +16,9 @@ RUN pip3 install numpy && \
     pip3 install matplotlib && \
     pip3 install seaborn && \
     pip3 install openpyxl && \
-    pip3 install pyBigWig
+    pip3 install pyBigWig && \
+    pip3 install ensembl_rest && \
+    pip3 install tspex
 
 ENV PATH=/usr/local/bin:$PATH
 
@@ -92,8 +94,5 @@ RUN mkdir -p /home/rstudio/data/GTEx && \
 RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
   sudo chmod -R 777 /scratch/
-
-RUN pip3 install ensembl_rest
-RUN pip3 install tspex
 
 ADD ./configs/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
