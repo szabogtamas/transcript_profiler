@@ -7,7 +7,9 @@ RUN sudo apt-get update -y && \
     sudo apt-get install -y libxml2-dev && \
     sudo apt-get install -y libbz2-dev && \
     sudo apt-get install -y liblzma-dev && \
-    sudo apt-get install -y gsl-bin
+    sudo apt-get install -y gsl-bin && \
+    sudo apt-get install -y tcsh && \
+    sudo apt-get install -y r-cran-rgl
 
 RUN sudo apt-get install -y libgsl-dev
 
@@ -50,11 +52,6 @@ RUN R -e "BiocManager::install('TFBSTools')"
 #RUN R -e "BiocManager::install('Gviz')"
 RUN R -e "remotes::install_github('ivanek/Gviz')"
 RUN R -e "BiocManager::install('AnnotationHub')"
-
-RUN sudo apt-get update -y && \
-    sudo apt-get install -y tcsh && \
-    sudo apt-get install -y r-cran-rgl
-
 RUN R -e "BiocManager::install('msa')"
 RUN R -e "BiocManager::install('ggmsa')"
 RUN R -e "BiocManager::install('seqinr')"
