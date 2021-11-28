@@ -92,7 +92,7 @@ RUN mkdir -p /home/rstudio/data/GTEx && \
   gunzip -c /home/rstudio/data/GTEx/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz > GTEx_v8_tpm.gct &&\
   rm /home/rstudio/data/GTEx/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz
 
-  
+RUN R -e "BiocManager::install('WGCNA')"
 
 RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
