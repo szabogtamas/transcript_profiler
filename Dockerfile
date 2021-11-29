@@ -57,6 +57,7 @@ RUN R -e "BiocManager::install('ggmsa')"
 RUN R -e "BiocManager::install('seqinr')"
 RUN R -e "BiocManager::install('bios2mds')"
 RUN R -e "BiocManager::install('seqmagick')"
+RUN R -e "BiocManager::install('WGCNA')"
 
 RUN install2.r --error \
     --deps TRUE \
@@ -91,8 +92,6 @@ RUN mkdir -p /home/rstudio/data/GTEx && \
   wget -P /home/rstudio/data/GTEx/ https://storage.googleapis.com/gtex_analysis_v8/rna_seq_data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz && \
   gunzip -c /home/rstudio/data/GTEx/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz > /home/rstudio/data/GTEx/GTEx_v8_tpm.gct &&\
   rm /home/rstudio/data/GTEx/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz
-
-RUN R -e "BiocManager::install('WGCNA')"
 
 RUN chmod a+rwx -R /home/rstudio
 RUN mkdir -p /scratch && \
