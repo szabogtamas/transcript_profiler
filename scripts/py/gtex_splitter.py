@@ -10,6 +10,14 @@ parser.add_argument("pheno_file")
 parser.add_argument("output_dir")
 args = parser.parse_args()
 
+def gex_add_save(d, columns, sample_meta_d, dr):
+    gex_mat = pd.DataFrame.from_dict(d, orient="index", columns=columns).melt(ignore_index=False)
+    gex_mat["Tissue"] = gex_mat["variable"].map(sample_meta_d)
+    grouped_df = gex_mat.groupby("Tissue")
+    for x in grouped_df.groups:
+        grouped_df.get_group(x).to_csv(dr+"/"+x+".csv", mode='a', header=False)
+    return
+
 def gcf_splicer(fn, dr, sample_meta_d):
     gex_mat = {}
     c = 0
@@ -24,18 +32,9 @@ def gcf_splicer(fn, dr, sample_meta_d):
                 gex_mat[line[0]] = line[2:]
             if c-(cc*1000) > 1000:
                 cc += 1
-                gex_mat = pd.DataFrame.from_dict(gex_mat, orient="index", columns=columns).melt(ignore_index=False)
-                gex_mat["Tissue"] = gex_mat["variable"].map(sample_meta_d)
-                grouped_df = gex_mat.groupby("Tissue")
-                for x in grouped_df.groups:
-                    grouped_df.get_group(x).to_csv(dr+"/"+x+".csv", mode='a', header=False)
-                grouped_df = None
+                gex_add_save(gex_mat, columns, sample_meta_d, dr)
                 gex_mat = dict()
-        gex_mat = pd.DataFrame.from_dict(gex_mat, orient="index", columns=columns).melt(ignore_index=False)
-        gex_mat["Tissue"] = gex_mat["variable"].map(sample_meta_d)
-        grouped_df = gex_mat.groupby("Tissue")
-        for x in grouped_df.groups:
-            grouped_df.get_group(x).to_csv(dr+"/"+x+".csv", mode='a', header=False)
+        gex_add_save(gex_mat, columns, sample_meta_d, dr)
     return
 
 
