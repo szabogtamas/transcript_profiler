@@ -20,7 +20,8 @@ RUN pip3 install numpy && \
     pip3 install openpyxl && \
     pip3 install pyBigWig && \
     pip3 install ensembl_rest && \
-    pip3 install tspex
+    pip3 install tspex && \
+    pip3 install brokenaxes
 
 ENV PATH=/usr/local/bin:$PATH
 
