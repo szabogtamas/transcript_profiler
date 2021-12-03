@@ -21,7 +21,8 @@ RUN pip3 install numpy && \
     pip3 install pyBigWig && \
     pip3 install ensembl_rest && \
     pip3 install tspex && \
-    pip3 install brokenaxes
+    pip3 install brokenaxes && \
+    pip3 install scanpy
 
 ENV PATH=/usr/local/bin:$PATH
 
