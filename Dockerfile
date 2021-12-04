@@ -9,6 +9,7 @@ RUN sudo apt-get update -y && \
     sudo apt-get install -y liblzma-dev && \
     sudo apt-get install -y gsl-bin && \
     sudo apt-get install -y tcsh && \
+    sudo apt-get install -y libglpk-dev && \
     sudo apt-get install -y r-cran-rgl
 
 RUN sudo apt-get install -y libgsl-dev
@@ -60,6 +61,7 @@ RUN R -e "BiocManager::install('seqinr')"
 RUN R -e "BiocManager::install('bios2mds')"
 RUN R -e "BiocManager::install('seqmagick')"
 RUN R -e "BiocManager::install('WGCNA')"
+RUN R -e "BiocManager::install('clusterProfiler')"
 
 RUN install2.r --error \
     --deps TRUE \
