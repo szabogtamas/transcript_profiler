@@ -14,7 +14,7 @@ RUN sudo apt-get update -y && \
 
 RUN sudo apt-get install -y libgsl-dev
 
-RUN pip3 install numpy && \
+RUN pip3 install numpy v==1.20&& \
     pip3 install pandas && \
     pip3 install matplotlib && \
     pip3 install seaborn && \
