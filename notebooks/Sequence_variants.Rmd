@@ -51,6 +51,7 @@ library(TxDb.Drerio.UCSC.danRer10.refGene)
 library(BSgenome.Drerio.UCSC.danRer10)
 library(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
 library(BSgenome.Dmelanogaster.UCSC.dm6)
+library(org.Xl.eg.db)
 
 hsdb <- EnsDb.Hsapiens.v86
 mmdb <- EnsDb.Mmusculus.v79
@@ -328,6 +329,22 @@ plot_features_on_alignment(
     params$figure_folder,
     paste(params$gene_symbol, "structure_mouse.pdf", sep="_")
   ), use_type=TRUE
+)
+```
+
+## Frog
+
+### Transcript annotations for gene
+
+```{r}
+frog_symbol <- params$gene_symbol %>%
+  homologene(inTax = 9606, outTax = 8355) %>%
+  .[["8355_ID"]] %>%
+  as.character()
+
+Tx_fg <- transcripts(
+  org.Xl.eg.db, filter = GeneNameFilter(frog_symbol),
+  columns = c("tx_biotype", "gene_name")
 )
 ```
 
