@@ -347,6 +347,8 @@ Tx_fg <- transcripts(
   columns = c("tx_biotype", "gene_name")
 )
 ```
+head(Tx_fg)
+```
 
 ## Zebrafish
 
