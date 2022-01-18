@@ -181,6 +181,10 @@ tso.tissue_specificity.head()
 ```
 
 ```python
+sns.barplot(x="Tissue", y=geneEns, data=tso.tissue_specificity.loc[geneEns].to_frame().reset_index(), order=tissue_order)
+```
+
+```python
 tso = tspex.TissueSpecificity(gex_matrix, 'spm')
 tso.tissue_specificity.head()
 ```
