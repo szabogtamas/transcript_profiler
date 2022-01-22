@@ -22,7 +22,7 @@ align_isoforms <- function(protein_seqs, alignment_fn, return_seqs=TRUE){
 
     alignment_fn %>%
       readLines() %>%
-      gsub("NA$", "", .) %>%
+      gsub("(NA)*$", "", .) %>%
       writeLines(alignment_fn)
     
     if (return_seqs) readAAStringSet(alignment_fn)
@@ -37,7 +37,7 @@ align_isoforms <- function(protein_seqs, alignment_fn, return_seqs=TRUE){
 #' @return GRanges                  The blocks of sequences shared between isoforms.
 convert_alignment_to_ranges <- function(aligned_seqs){
     
-    aligned_ranges <- aligned_seqs %>%
+    aligned_seqs %>%
         as.list() %>%
         purrr::map_dfr(
             function(x) {
