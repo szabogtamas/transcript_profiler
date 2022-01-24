@@ -25,7 +25,11 @@ align_isoforms <- function(protein_seqs, alignment_fn, return_seqs=TRUE){
       gsub("(NA)*$", "", .) %>%
       writeLines(alignment_fn)
     
-    if (return_seqs) readAAStringSet(alignment_fn)
+    aln_seqs <- readAAStringSet(alignment_fn)
+    
+    if (return_seqs) out_val <- aln_seqs else out_val <- alignment_fn
+    
+    out_val
 
 }
 
